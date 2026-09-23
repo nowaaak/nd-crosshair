@@ -1,0 +1,26 @@
+name: Feature request
+description: Suggest an idea or improvement
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Ideas are welcome. English or German are both fine.
+        Ideen sind willkommen. Deutsch oder Englisch sind beide in Ordnung.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What would you like to do?
+      description: Describe the situation or problem this feature would solve.
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Suggested solution
+      description: How could it work? Mockups or examples from other tools help.
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Game, screenshots or anything else that helps.

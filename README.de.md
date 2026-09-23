@@ -91,6 +91,10 @@ Ein Tag wie `v1.0.0` startet den Release-Workflow. Er testet, baut beide Variant
 - Ausblenden bei gehaltener rechter Maustaste (ADS)
 - Eigene PNG-Bilder als Crosshair
 
+## Feedback
+
+Fehler gefunden oder eine Idee? Eröffne ein [Issue](https://github.com/nowaaak/nd-crosshair/issues/new/choose). Pull Requests werden nicht angenommen, siehe [CONTRIBUTING](CONTRIBUTING.md).
+
 ## Lizenz
 
 [MIT](LICENSE)

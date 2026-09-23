@@ -91,6 +91,10 @@ Pushing a tag like `v1.0.0` runs the release workflow. It tests, builds both var
 - Hide while holding the right mouse button (ADS)
 - Custom PNG images as crosshair
 
+## Feedback
+
+Found a bug or have an idea? Open an [issue](https://github.com/nowaaak/nd-crosshair/issues/new/choose). Pull requests are not accepted, see [CONTRIBUTING](CONTRIBUTING.md).
+
 ## License
 
 [MIT](LICENSE)
