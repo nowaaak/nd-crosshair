@@ -1,0 +1,283 @@
+<UserControl x:Class="NdCrosshair.App.Views.CrosshairPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:app="clr-namespace:NdCrosshair.App"
+             xmlns:core="clr-namespace:NdCrosshair.Core;assembly=NdCrosshair.Core"
+             xmlns:l="clr-namespace:NdCrosshair.App.Localization">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="24" />
+            <ColumnDefinition Width="360" />
+        </Grid.ColumnDefinitions>
+
+        <DockPanel>
+            <StackPanel DockPanel.Dock="Top">
+                <TextBlock Text="{l:T NavCrosshair}" Style="{StaticResource PageTitle}" />
+                <TextBlock Text="{l:T CrosshairSubtitle}" Style="{StaticResource PageSubtitle}" />
+                <Border Style="{StaticResource SegmentHost}" Margin="0,0,0,16">
+                    <StackPanel Orientation="Horizontal">
+                        <RadioButton Style="{StaticResource SegmentButton}" GroupName="DesignTab" Content="{l:T TabShape}"
+                                     IsChecked="{Binding DesignTab, Converter={StaticResource EnumMatch}, ConverterParameter=Shape}" />
+                        <RadioButton Style="{StaticResource SegmentButton}" GroupName="DesignTab" Content="{l:T TabColor}"
+                                     IsChecked="{Binding DesignTab, Converter={StaticResource EnumMatch}, ConverterParameter=Color}" />
+                        <RadioButton Style="{StaticResource SegmentButton}" GroupName="DesignTab" Content="{l:T TabEffects}"
+                                     IsChecked="{Binding DesignTab, Converter={StaticResource EnumMatch}, ConverterParameter=Effects}" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,8,24">
+                <Grid>
+                    <StackPanel Visibility="{Binding DesignTab, Converter={StaticResource EnumVisibility}, ConverterParameter=Shape}">
+                        <GroupBox Header="{l:T CardLines}">
+                            <StackPanel>
+                                <WrapPanel Margin="0,0,0,6">
+                                    <CheckBox Style="{StaticResource ChipCheckBox}" Content="{l:T LineTop}" IsChecked="{Binding ShowTop}" />
+                                    <CheckBox Style="{StaticResource ChipCheckBox}" Content="{l:T LineBottom}" IsChecked="{Binding ShowBottom}" />
+                                    <CheckBox Style="{StaticResource ChipCheckBox}" Content="{l:T LineLeft}" IsChecked="{Binding ShowLeft}" />
+                                    <CheckBox Style="{StaticResource ChipCheckBox}" Content="{l:T LineRight}" IsChecked="{Binding ShowRight}" />
+                                </WrapPanel>
+                                <app:SettingSlider Label="{l:T Length}" Value="{Binding LineLength}"
+                                                   Minimum="{x:Static core:CrosshairSettings.MinLineLength}"
+                                                   Maximum="{x:Static core:CrosshairSettings.MaxLineLength}" />
+                                <app:SettingSlider Label="{l:T Thickness}" Value="{Binding LineThickness}"
+                                                   Minimum="{x:Static core:CrosshairSettings.MinLineThickness}"
+                                                   Maximum="{x:Static core:CrosshairSettings.MaxLineThickness}" />
+                                <app:SettingSlider Label="{l:T Gap}" Value="{Binding Gap}"
+                                                   Minimum="{x:Static core:CrosshairSettings.MinGap}"
+                                                   Maximum="{x:Static core:CrosshairSettings.MaxGap}" />
+                                <app:SettingSlider Label="{l:T Rotation}" Value="{Binding Rotation}"
+                                                   Minimum="{x:Static core:CrosshairSettings.MinRotation}"
+                                                   Maximum="{x:Static core:CrosshairSettings.MaxRotation}" />
+                            </StackPanel>
+                        </GroupBox>
+
+                        <GroupBox>
+                            <GroupBox.Header>
+                                <DockPanel>
+                                    <CheckBox DockPanel.Dock="Right" Style="{StaticResource SwitchCheckBox}" Margin="0"
+                                              IsChecked="{Binding ShowDot}" AutomationProperties.Name="{l:T CardDot}" />
+                                    <TextBlock Text="{l:T CardDot}" VerticalAlignment="Center" />
+                                </DockPanel>
+                            </GroupBox.Header>
+                            <StackPanel IsEnabled="{Binding ShowDot}">
+                                <CheckBox Content="{l:T DotRound}" IsChecked="{Binding RoundDot}" />
+                                <app:SettingSlider Label="{l:T Size}" Value="{Binding DotSize}"
+                                                   Minimum="{x:Static core:CrosshairSettings.MinDotSize}"
+                                                   Maximum="{x:Static core:CrosshairSettings.MaxDotSize}" />
+                            </StackPanel>
+                        </GroupBox>
+
+                        <GroupBox Margin="0">
+                            <GroupBox.Header>
+                                <DockPanel>
+                                    <CheckBox DockPanel.Dock="Right" Style="{StaticResource SwitchCheckBox}" Margin="0"
+                                              IsChecked="{Binding ShowRing}" AutomationProperties.Name="{l:T CardRing}" />
+                                    <TextBlock Text="{l:T CardRing}" VerticalAlignment="Center" />
+                                </DockPanel>
+                            </GroupBox.Header>
+                            <StackPanel IsEnabled="{Binding ShowRing}">
+                                <app:SettingSlider Label="{l:T Radius}" Value="{Binding RingRadius}"
+                                                   Minimum="{x:Static core:CrosshairSettings.MinRingRadius}"
+                                                   Maximum="{x:Static core:CrosshairSettings.MaxRingRadius}" />
+                                <app:SettingSlider Label="{l:T Thickness}" Value="{Binding RingThickness}"
+                                                   Minimum="{x:Static core:CrosshairSettings.MinRingThickness}"
+                                                   Maximum="{x:Static core:CrosshairSettings.MaxRingThickness}" />
+                            </StackPanel>
+                        </GroupBox>
+                    </StackPanel>
+
+                    <StackPanel Visibility="{Binding DesignTab, Converter={StaticResource EnumVisibility}, ConverterParameter=Color}">
+                        <GroupBox Header="{l:T CardColorMode}">
+                            <StackPanel>
+                                <Border Style="{StaticResource SegmentHost}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <RadioButton Style="{StaticResource SegmentButton}" GroupName="ColorMode" Content="{l:T ModeStatic}"
+                                                     IsChecked="{Binding ColorMode, Converter={StaticResource EnumMatch}, ConverterParameter=Static}" />
+                                        <RadioButton Style="{StaticResource SegmentButton}" GroupName="ColorMode" Content="{l:T ModeRainbow}"
+                                                     IsChecked="{Binding ColorMode, Converter={StaticResource EnumMatch}, ConverterParameter=Rainbow}" />
+                                        <RadioButton Style="{StaticResource SegmentButton}" GroupName="ColorMode" Content="{l:T ModeAdaptive}"
+                                                     IsChecked="{Binding ColorMode, Converter={StaticResource EnumMatch}, ConverterParameter=Adaptive}" />
+                                    </StackPanel>
+                                </Border>
+                                <TextBlock Text="{l:T ModeStaticDescription}" Style="{StaticResource SecondaryText}" TextWrapping="Wrap" Margin="0,12,0,0"
+                                           Visibility="{Binding ColorMode, Converter={StaticResource EnumVisibility}, ConverterParameter=Static}" />
+                                <StackPanel Visibility="{Binding ColorMode, Converter={StaticResource EnumVisibility}, ConverterParameter=Rainbow}">
+                                    <TextBlock Text="{l:T ModeRainbowDescription}" Style="{StaticResource SecondaryText}" TextWrapping="Wrap" Margin="0,12,0,8" />
+                                    <app:SettingSlider Label="{l:T Speed}" Value="{Binding RainbowSpeed}"
+                                                       Minimum="{x:Static core:CrosshairSettings.MinRainbowSpeed}"
+                                                       Maximum="{x:Static core:CrosshairSettings.MaxRainbowSpeed}" />
+                                </StackPanel>
+                                <StackPanel Visibility="{Binding ColorMode, Converter={StaticResource EnumVisibility}, ConverterParameter=Adaptive}">
+                                    <TextBlock Text="{l:T ModeAdaptiveDescription}" Style="{StaticResource SecondaryText}" TextWrapping="Wrap" Margin="0,12,0,10" />
+                                    <Border CornerRadius="6" Background="#1FFCE100" BorderBrush="#66FCE100" BorderThickness="1" Padding="12,10">
+                                        <DockPanel>
+                                            <TextBlock DockPanel.Dock="Left" Text="&#xE7BA;" FontFamily="{StaticResource IconFont}" FontSize="16"
+                                                       Foreground="{StaticResource WarningBrush}" Margin="0,1,10,0" />
+                                            <TextBlock Text="{l:T ModeAdaptiveWarning}" TextWrapping="Wrap" FontSize="12" />
+                                        </DockPanel>
+                                    </Border>
+                                </StackPanel>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <GroupBox Header="{l:T CardColor}" Margin="0">
+                            <StackPanel>
+                                <app:ColorField Label="{l:T ColorLabel}" Hex="{Binding ColorHex}" />
+                                <ItemsControl ItemsSource="{Binding ColorSwatches}" Margin="120,8,0,8" Focusable="False">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Style="{StaticResource SwatchButton}" Background="{Binding}" Tag="{Binding}"
+                                                    ToolTip="{Binding}" AutomationProperties.Name="{Binding}" Click="OnSwatch" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <app:SettingSlider Label="{l:T OpacityLabel}" Value="{Binding Opacity}"
+                                                   Minimum="{x:Static core:CrosshairSettings.MinOpacity}"
+                                                   Maximum="{x:Static core:CrosshairSettings.MaxOpacity}" />
+                            </StackPanel>
+                        </GroupBox>
+                    </StackPanel>
+
+                    <StackPanel Visibility="{Binding DesignTab, Converter={StaticResource EnumVisibility}, ConverterParameter=Effects}">
+                        <GroupBox>
+                            <GroupBox.Header>
+                                <DockPanel>
+                                    <CheckBox DockPanel.Dock="Right" Style="{StaticResource SwitchCheckBox}" Margin="0"
+                                              IsChecked="{Binding ShowOutline}" AutomationProperties.Name="{l:T CardOutline}" />
+                                    <TextBlock Text="{l:T CardOutline}" VerticalAlignment="Center" />
+                                </DockPanel>
+                            </GroupBox.Header>
+                            <StackPanel IsEnabled="{Binding ShowOutline}">
+                                <app:SettingSlider Label="{l:T Thickness}" Value="{Binding OutlineThickness}"
+                                                   Minimum="{x:Static core:CrosshairSettings.MinOutlineThickness}"
+                                                   Maximum="{x:Static core:CrosshairSettings.MaxOutlineThickness}" />
+                                <app:ColorField Label="{l:T ColorLabel}" Hex="{Binding OutlineColorHex}" />
+                            </StackPanel>
+                        </GroupBox>
+
+                        <GroupBox Margin="0">
+                            <GroupBox.Header>
+                                <DockPanel>
+                                    <CheckBox DockPanel.Dock="Right" Style="{StaticResource SwitchCheckBox}" Margin="0"
+                                              IsChecked="{Binding ShowShadow}" AutomationProperties.Name="{l:T CardShadow}" />
+                                    <TextBlock Text="{l:T CardShadow}" VerticalAlignment="Center" />
+                                </DockPanel>
+                            </GroupBox.Header>
+                            <StackPanel IsEnabled="{Binding ShowShadow}">
+                                <app:SettingSlider Label="{l:T Size}" Value="{Binding ShadowSize}"
+                                                   Minimum="{x:Static core:CrosshairSettings.MinShadowSize}"
+                                                   Maximum="{x:Static core:CrosshairSettings.MaxShadowSize}" />
+                                <app:SettingSlider Label="{l:T OpacityLabel}" Value="{Binding ShadowOpacity}"
+                                                   Minimum="{x:Static core:CrosshairSettings.MinShadowOpacity}"
+                                                   Maximum="{x:Static core:CrosshairSettings.MaxShadowOpacity}" />
+                                <app:ColorField Label="{l:T ColorLabel}" Hex="{Binding ShadowColorHex}" />
+                            </StackPanel>
+                        </GroupBox>
+                    </StackPanel>
+                </Grid>
+            </ScrollViewer>
+        </DockPanel>
+
+        <StackPanel Grid.Column="2" Margin="0,8,0,0">
+            <GroupBox Header="{l:T CardPreview}">
+                <StackPanel>
+                    <Border Height="260" CornerRadius="6" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Background" Value="#FF16191D" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding PreviewScene}" Value="Light">
+                                        <Setter Property="Background" Value="#FFE4E7EA" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding PreviewScene}" Value="Sky">
+                                        <Setter Property="Background">
+                                            <Setter.Value>
+                                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                                    <GradientStop Color="#FF5E97D6" Offset="0" />
+                                                    <GradientStop Color="#FFB5D5F2" Offset="1" />
+                                                </LinearGradientBrush>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding PreviewScene}" Value="Forest">
+                                        <Setter Property="Background">
+                                            <Setter.Value>
+                                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                    <GradientStop Color="#FF2E5429" Offset="0" />
+                                                    <GradientStop Color="#FF4F8043" Offset="0.5" />
+                                                    <GradientStop Color="#FF35602F" Offset="1" />
+                                                </LinearGradientBrush>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <Grid>
+                            <Image Source="{Binding PreviewImage}"
+                                   Width="{Binding PreviewZoomedSize}"
+                                   Height="{Binding PreviewZoomedSize}"
+                                   Stretch="Fill"
+                                   RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center" />
+                            <Border Background="#CC1C1C1C" CornerRadius="6" Padding="14,10" MaxWidth="260"
+                                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                                    Visibility="{Binding IsCrosshairEmpty, Converter={StaticResource Visible}}">
+                                <StackPanel>
+                                    <TextBlock Text="{l:T PreviewEmptyTitle}" FontWeight="SemiBold" TextAlignment="Center" />
+                                    <TextBlock Text="{l:T PreviewEmptyText}" Style="{StaticResource SecondaryText}" FontSize="12"
+                                               TextWrapping="Wrap" TextAlignment="Center" Margin="0,4,0,0" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </Border>
+                    <DockPanel Margin="0,10,0,0">
+                        <TextBlock DockPanel.Dock="Right" Text="{Binding PreviewScaleText}" Style="{StaticResource SecondaryText}"
+                                   FontSize="12" VerticalAlignment="Center" />
+                        <Border Style="{StaticResource SegmentHost}">
+                            <StackPanel Orientation="Horizontal">
+                                <RadioButton Style="{StaticResource SegmentButton}" GroupName="Scene" Padding="10,4" FontSize="12"
+                                             Content="{l:T SceneDark}"
+                                             IsChecked="{Binding PreviewScene, Converter={StaticResource EnumMatch}, ConverterParameter=Dark}" />
+                                <RadioButton Style="{StaticResource SegmentButton}" GroupName="Scene" Padding="10,4" FontSize="12"
+                                             Content="{l:T SceneLight}"
+                                             IsChecked="{Binding PreviewScene, Converter={StaticResource EnumMatch}, ConverterParameter=Light}" />
+                                <RadioButton Style="{StaticResource SegmentButton}" GroupName="Scene" Padding="10,4" FontSize="12"
+                                             Content="{l:T SceneSky}"
+                                             IsChecked="{Binding PreviewScene, Converter={StaticResource EnumMatch}, ConverterParameter=Sky}" />
+                                <RadioButton Style="{StaticResource SegmentButton}" GroupName="Scene" Padding="10,4" FontSize="12"
+                                             Content="{l:T SceneForest}"
+                                             IsChecked="{Binding PreviewScene, Converter={StaticResource EnumMatch}, ConverterParameter=Forest}" />
+                            </StackPanel>
+                        </Border>
+                    </DockPanel>
+                    <TextBlock Text="{Binding PreviewModeHint}" Style="{StaticResource SecondaryText}" FontSize="12" TextWrapping="Wrap"
+                               Margin="0,8,0,0" Visibility="{Binding PreviewModeHint, Converter={StaticResource Visible}}" />
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox Header="{l:T CardActivePreset}">
+                <StackPanel>
+                    <ComboBox ItemsSource="{Binding Presets}" SelectedItem="{Binding SelectedPreset, Mode=TwoWay}"
+                              DisplayMemberPath="Name" AutomationProperties.Name="{l:T CardActivePreset}" />
+                    <DockPanel Margin="0,10,0,0">
+                        <Button DockPanel.Dock="Right" Content="{l:T CopyCode}" Style="{StaticResource AccentButton}"
+                                Margin="8,0,0,0" Click="OnCopyShareCode" />
+                        <TextBox Text="{Binding ShareCodeText, Mode=OneWay}" IsReadOnly="True"
+                                 FontFamily="Cascadia Mono, Consolas" FontSize="12" AutomationProperties.Name="{l:T ShareCode}" />
+                    </DockPanel>
+                    <TextBlock Text="{Binding ShareStatus}" Style="{StaticResource SecondaryText}" FontSize="12" Margin="0,6,0,0"
+                               Visibility="{Binding ShareStatus, Converter={StaticResource Visible}}" />
+                </StackPanel>
+            </GroupBox>
+        </StackPanel>
+    </Grid>
+</UserControl>

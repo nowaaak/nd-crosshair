@@ -1,0 +1,65 @@
+<UserControl x:Class="NdCrosshair.App.Views.SystemPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:NdCrosshair.App.Controls"
+             xmlns:l="clr-namespace:NdCrosshair.App.Localization">
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Top">
+            <TextBlock Text="{l:T NavSystem}" Style="{StaticResource PageTitle}" />
+            <TextBlock Text="{l:T SystemSubtitle}" Style="{StaticResource PageSubtitle}" />
+        </StackPanel>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,8,24">
+            <StackPanel MaxWidth="880" HorizontalAlignment="Left">
+                <TextBlock Text="{l:T SectionStartup}" Style="{StaticResource SectionHeader}" Margin="2,0,0,8" />
+                <controls:SettingCard Glyph="&#xE7E8;" Header="{l:T AutostartHeader}" Description="{l:T AutostartDescription}">
+                    <CheckBox Style="{StaticResource SwitchCheckBox}" Margin="0" IsChecked="{Binding StartWithWindows}"
+                              AutomationProperties.Name="{l:T AutostartHeader}" />
+                </controls:SettingCard>
+                <controls:SettingCard Glyph="&#xE921;" Header="{l:T StartMinimizedHeader}" Description="{l:T StartMinimizedDescription}">
+                    <CheckBox Style="{StaticResource SwitchCheckBox}" Margin="0" IsChecked="{Binding StartMinimized}"
+                              AutomationProperties.Name="{l:T StartMinimizedHeader}" />
+                </controls:SettingCard>
+
+                <TextBlock Text="{l:T SectionWindow}" Style="{StaticResource SectionHeader}" />
+                <controls:SettingCard Glyph="&#xE73F;" Header="{l:T MinimizeToTrayHeader}" Description="{l:T MinimizeToTrayDescription}">
+                    <CheckBox Style="{StaticResource SwitchCheckBox}" Margin="0" IsChecked="{Binding MinimizeToTray}"
+                              AutomationProperties.Name="{l:T MinimizeToTrayHeader}" />
+                </controls:SettingCard>
+                <controls:SettingCard Glyph="&#xE8BB;" Header="{l:T CloseToTrayHeader}" Description="{l:T CloseToTrayDescription}">
+                    <CheckBox Style="{StaticResource SwitchCheckBox}" Margin="0" IsChecked="{Binding CloseToTray}"
+                              AutomationProperties.Name="{l:T CloseToTrayHeader}" />
+                </controls:SettingCard>
+
+                <TextBlock Text="{l:T SectionLanguage}" Style="{StaticResource SectionHeader}" />
+                <controls:SettingCard Glyph="&#xF2B7;" Header="{l:T LanguageHeader}" Description="{l:T LanguageDescription}">
+                    <Border Style="{StaticResource SegmentHost}">
+                        <StackPanel Orientation="Horizontal">
+                            <RadioButton Style="{StaticResource SegmentButton}" GroupName="Language" Content="{l:T LanguageSystem}"
+                                         IsChecked="{Binding Language, Converter={StaticResource EnumMatch}, ConverterParameter=System}" />
+                            <RadioButton Style="{StaticResource SegmentButton}" GroupName="Language" Content="Deutsch"
+                                         IsChecked="{Binding Language, Converter={StaticResource EnumMatch}, ConverterParameter=German}" />
+                            <RadioButton Style="{StaticResource SegmentButton}" GroupName="Language" Content="English"
+                                         IsChecked="{Binding Language, Converter={StaticResource EnumMatch}, ConverterParameter=English}" />
+                        </StackPanel>
+                    </Border>
+                </controls:SettingCard>
+
+                <TextBlock Text="{l:T SectionData}" Style="{StaticResource SectionHeader}" />
+                <controls:SettingCard Glyph="&#xE74E;" Header="{l:T BackupHeader}" Description="{l:T BackupDescription}">
+                    <StackPanel Orientation="Horizontal">
+                        <Button Content="{l:T Export}" Click="OnExport" Margin="0,0,8,0" />
+                        <Button Content="{l:T ImportFile}" Click="OnImport" />
+                    </StackPanel>
+                </controls:SettingCard>
+                <controls:SettingCard Glyph="&#xE838;" Header="{l:T ConfigFolderHeader}" Description="{Binding ConfigFilePath}">
+                    <Button Content="{l:T OpenFolder}" Click="OnOpenFolder" />
+                </controls:SettingCard>
+                <controls:SettingCard Glyph="&#xE72C;" Header="{l:T ResetHeader}" Description="{l:T ResetDescription}">
+                    <Button Content="{l:T Reset}" Style="{StaticResource DangerButton}" Click="OnReset" />
+                </controls:SettingCard>
+                <TextBlock x:Name="StatusText" Style="{StaticResource SecondaryText}" FontSize="12" TextWrapping="Wrap" Margin="2,8,0,0" />
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</UserControl>

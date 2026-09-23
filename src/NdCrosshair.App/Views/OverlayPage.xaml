@@ -1,0 +1,87 @@
+<UserControl x:Class="NdCrosshair.App.Views.OverlayPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:app="clr-namespace:NdCrosshair.App"
+             xmlns:controls="clr-namespace:NdCrosshair.App.Controls"
+             xmlns:l="clr-namespace:NdCrosshair.App.Localization">
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Top">
+            <TextBlock Text="{l:T NavOverlay}" Style="{StaticResource PageTitle}" />
+            <TextBlock Text="{l:T OverlaySubtitle}" Style="{StaticResource PageSubtitle}" />
+        </StackPanel>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,8,24">
+            <StackPanel MaxWidth="880" HorizontalAlignment="Left">
+                <TextBlock Text="{l:T SectionPlacement}" Style="{StaticResource SectionHeader}" Margin="2,0,0,8" />
+                <controls:SettingCard Glyph="&#xE7F4;" Header="{l:T MonitorHeader}" Description="{l:T MonitorDescription}">
+                    <ComboBox Width="300" ItemsSource="{Binding Monitors}" SelectedItem="{Binding SelectedMonitor, Mode=TwoWay}"
+                              DisplayMemberPath="Label" AutomationProperties.Name="{l:T MonitorHeader}" />
+                </controls:SettingCard>
+                <controls:SettingCard Glyph="&#xE759;" Header="{l:T OffsetHeader}" Description="{l:T OffsetDescription}">
+                    <Button Content="{l:T Reset}" Click="OnResetOffset" />
+                    <controls:SettingCard.Body>
+                        <StackPanel>
+                            <app:SettingSlider Label="{l:T OffsetX}" Value="{Binding OffsetX}" Minimum="{Binding MinOffset}" Maximum="{Binding MaxOffset}" />
+                            <app:SettingSlider Label="{l:T OffsetY}" Value="{Binding OffsetY}" Minimum="{Binding MinOffset}" Maximum="{Binding MaxOffset}" />
+                        </StackPanel>
+                    </controls:SettingCard.Body>
+                </controls:SettingCard>
+
+                <TextBlock Text="{l:T SectionBehavior}" Style="{StaticResource SectionHeader}" />
+                <controls:SettingCard Glyph="&#xE7FC;" Header="{l:T GameOnlyHeader}" Description="{l:T GameOnlyDescription}">
+                    <CheckBox Style="{StaticResource SwitchCheckBox}" Margin="0" IsChecked="{Binding ShowOnlyOverGame}"
+                              AutomationProperties.Name="{l:T GameOnlyHeader}" />
+                    <controls:SettingCard.Body>
+                        <StackPanel IsEnabled="{Binding ShowOnlyOverGame}">
+                            <TextBlock Text="{l:T GameTitlesLabel}" Style="{StaticResource SecondaryText}" FontSize="12" Margin="0,0,0,6" />
+                            <ItemsControl ItemsSource="{Binding GameWindowTitles}" Focusable="False">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="{StaticResource ControlBrush}" BorderBrush="{StaticResource ControlBorderBrush}"
+                                                BorderThickness="1" CornerRadius="14" Padding="12,2,4,2" Margin="0,0,6,6">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding}" VerticalAlignment="Center" />
+                                                <Button Style="{StaticResource IconButton}" Content="&#xE711;" FontSize="9" Width="22" Height="22"
+                                                        Margin="6,0,0,0" Tag="{Binding}" Click="OnRemoveTitle"
+                                                        AutomationProperties.Name="{l:T Remove}" />
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <DockPanel Margin="0,6,0,0">
+                                <Button DockPanel.Dock="Right" Content="{l:T CaptureWindow}" Margin="8,0,0,0" Click="OnCaptureWindow"
+                                        IsEnabled="{Binding IsCapturingWindow, Converter={x:Static controls:Inverter.Instance}}" />
+                                <Button DockPanel.Dock="Right" Content="{l:T Add}" Margin="8,0,0,0" Click="OnAddTitle" />
+                                <TextBox Text="{Binding NewGameTitle, UpdateSourceTrigger=PropertyChanged}" KeyDown="OnTitleKeyDown"
+                                         AutomationProperties.Name="{l:T GameTitlesLabel}" />
+                            </DockPanel>
+                            <TextBlock Text="{Binding CaptureStatus}" Style="{StaticResource SecondaryText}" FontSize="12" Margin="0,6,0,0"
+                                       TextWrapping="Wrap" Visibility="{Binding CaptureStatus, Converter={StaticResource Visible}}" />
+                        </StackPanel>
+                    </controls:SettingCard.Body>
+                </controls:SettingCard>
+                <controls:SettingCard Glyph="&#xE714;" Header="{l:T StreamerHeader}" Description="{l:T StreamerDescription}">
+                    <CheckBox Style="{StaticResource SwitchCheckBox}" Margin="0" IsChecked="{Binding StreamerMode}"
+                              AutomationProperties.Name="{l:T StreamerHeader}" />
+                </controls:SettingCard>
+
+                <Border Style="{StaticResource Card}" Background="#1460CDFF" BorderBrush="#4460CDFF" Margin="0,12,0,0">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Left" Text="&#xE946;" FontFamily="{StaticResource IconFont}" FontSize="18"
+                                   Foreground="{StaticResource AccentBrush}" Margin="2,2,16,0" />
+                        <StackPanel>
+                            <TextBlock Text="{l:T FortniteHintTitle}" FontWeight="SemiBold" />
+                            <TextBlock Text="{l:T FortniteHintText}" Style="{StaticResource SecondaryText}" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0" />
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</UserControl>

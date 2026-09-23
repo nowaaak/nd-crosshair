@@ -1,0 +1,34 @@
+<UserControl x:Class="NdCrosshair.App.Views.HotkeysPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:NdCrosshair.App.Controls"
+             xmlns:l="clr-namespace:NdCrosshair.App.Localization">
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Top">
+            <TextBlock Text="{l:T NavHotkeys}" Style="{StaticResource PageTitle}" />
+            <TextBlock Text="{l:T HotkeysSubtitle}" Style="{StaticResource PageSubtitle}" />
+        </StackPanel>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,8,24">
+            <StackPanel MaxWidth="880" HorizontalAlignment="Left">
+                <controls:SettingCard Glyph="&#xE7B3;" Header="{l:T HotkeyToggleHeader}" Description="{l:T HotkeyToggleDescription}">
+                    <controls:HotkeyBox Label="{l:T HotkeyToggleHeader}" Hotkey="{Binding ToggleHotkey}"
+                                        Status="{Binding ToggleHotkeyStatus}" IsCapturing="{Binding IsCapturingHotkey}" />
+                </controls:SettingCard>
+                <controls:SettingCard Glyph="&#xE893;" Header="{l:T HotkeyNextHeader}" Description="{l:T HotkeyNextDescription}">
+                    <controls:HotkeyBox Label="{l:T HotkeyNextHeader}" Hotkey="{Binding NextPresetHotkey}"
+                                        Status="{Binding NextHotkeyStatus}" IsCapturing="{Binding IsCapturingHotkey}" />
+                </controls:SettingCard>
+                <controls:SettingCard Glyph="&#xE892;" Header="{l:T HotkeyPreviousHeader}" Description="{l:T HotkeyPreviousDescription}">
+                    <controls:HotkeyBox Label="{l:T HotkeyPreviousHeader}" Hotkey="{Binding PreviousPresetHotkey}"
+                                        Status="{Binding PreviousHotkeyStatus}" IsCapturing="{Binding IsCapturingHotkey}" />
+                </controls:SettingCard>
+                <controls:SettingCard Glyph="&#xEA8F;" Header="{l:T PresetNotificationHeader}" Description="{l:T PresetNotificationDescription}">
+                    <CheckBox Style="{StaticResource SwitchCheckBox}" Margin="0" IsChecked="{Binding ShowPresetNotifications}"
+                              AutomationProperties.Name="{l:T PresetNotificationHeader}" />
+                </controls:SettingCard>
+                <TextBlock Text="{l:T HotkeysNote}" Style="{StaticResource SecondaryText}" FontSize="12" TextWrapping="Wrap" Margin="2,8,0,0" />
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</UserControl>

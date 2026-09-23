@@ -1,0 +1,32 @@
+<Window x:Class="NdCrosshair.App.Services.ToastWindow"
+        x:ClassModifier="internal"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="clr-namespace:NdCrosshair.App.Localization"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        ShowActivated="False"
+        Topmost="True"
+        SizeToContent="WidthAndHeight"
+        FontFamily="{StaticResource UiFont}"
+        FontSize="14"
+        Foreground="{StaticResource TextBrush}"
+        UseLayoutRounding="True">
+    <Border Width="360" Margin="12" Padding="14,12" CornerRadius="10"
+            Background="{StaticResource PopupBrush}" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="1">
+        <DockPanel>
+            <Border DockPanel.Dock="Left" Width="32" Height="32" CornerRadius="7" Background="Black" VerticalAlignment="Top">
+                <Path Data="{StaticResource LogoGeometry}" Fill="White" Stretch="Uniform" Margin="6" />
+            </Border>
+            <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Content="&#xE8BB;" FontSize="10"
+                    VerticalAlignment="Top" Click="OnClose" AutomationProperties.Name="{l:T Close}" />
+            <StackPanel Margin="12,0,8,0">
+                <TextBlock Text="ND Crosshair" FontWeight="SemiBold" />
+                <TextBlock x:Name="MessageText" TextWrapping="Wrap" Margin="0,2,0,0" Style="{StaticResource SecondaryText}" />
+            </StackPanel>
+        </DockPanel>
+    </Border>
+</Window>

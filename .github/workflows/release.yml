@@ -1,0 +1,75 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Determine version
+        id: version
+        shell: pwsh
+        run: |
+          if ($env:GITHUB_REF_TYPE -eq 'tag') {
+            $version = $env:GITHUB_REF_NAME.TrimStart('v')
+          } else {
+            $version = '0.0.0-dev.' + $env:GITHUB_RUN_NUMBER
+          }
+          "value=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Test
+        run: dotnet test --configuration Release
+
+      - name: Publish portable build
+        run: >
+          dotnet publish src/NdCrosshair.App -c Release -r win-x64
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:EnableCompressionInSingleFile=true
+          -p:DebugType=none
+          -p:Version=${{ steps.version.outputs.value }}
+          -o artifacts/portable
+
+      - name: Publish framework-dependent build
+        run: >
+          dotnet publish src/NdCrosshair.App -c Release -r win-x64
+          --self-contained false
+          -p:PublishSingleFile=true
+          -p:DebugType=none
+          -p:Version=${{ steps.version.outputs.value }}
+          -o artifacts/framework-dependent
+
+      - name: Package
+        shell: pwsh
+        run: |
+          $version = '${{ steps.version.outputs.value }}'
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Compress-Archive -Path artifacts/portable/NdCrosshair.exe, LICENSE -DestinationPath "dist/NdCrosshair-$version-win-x64-portable.zip"
+          Compress-Archive -Path artifacts/framework-dependent/NdCrosshair.exe, LICENSE -DestinationPath "dist/NdCrosshair-$version-win-x64-requires-dotnet8.zip"
+          Get-FileHash dist/*.zip -Algorithm SHA256 | ForEach-Object { "$($_.Hash.ToLower())  $(Split-Path $_.Path -Leaf)" } | Set-Content dist/SHA256SUMS.txt
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: NdCrosshair-${{ steps.version.outputs.value }}
+          path: dist/*
+
+      - name: Create GitHub release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: gh release create $env:GITHUB_REF_NAME dist/* --title "ND Crosshair $env:GITHUB_REF_NAME" --generate-notes

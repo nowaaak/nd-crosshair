@@ -1,0 +1,39 @@
+<UserControl x:Class="NdCrosshair.App.SettingSlider"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <UserControl.Style>
+        <Style TargetType="UserControl">
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.4" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Style>
+    <Grid Margin="0,4"
+          DataContext="{Binding RelativeSource={RelativeSource AncestorType=UserControl}}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="120" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="64" />
+        </Grid.ColumnDefinitions>
+        <TextBlock Text="{Binding Label}"
+                   VerticalAlignment="Center" />
+        <Slider Grid.Column="1"
+                Minimum="{Binding Minimum}"
+                Maximum="{Binding Maximum}"
+                Value="{Binding Value, Mode=TwoWay}"
+                IsSnapToTickEnabled="True"
+                TickFrequency="1"
+                SmallChange="1"
+                LargeChange="5"
+                VerticalAlignment="Center"
+                AutomationProperties.Name="{Binding Label}" />
+        <TextBox Grid.Column="2"
+                 Margin="12,0,0,0"
+                 Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                 TextAlignment="Center"
+                 KeyDown="OnValueBoxKeyDown"
+                 AutomationProperties.Name="{Binding Label}" />
+    </Grid>
+</UserControl>
