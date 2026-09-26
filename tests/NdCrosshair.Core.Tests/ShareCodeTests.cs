@@ -202,7 +202,7 @@ public class ShareCodeTests
         payload[12] = 0;
 
         Assert.True(ShareCode.TryDecode(BuildCode(ShareCode.Version2Prefix, payload), out var settings, out _));
-        Assert.Equal(CrosshairSettings.MaxRotation, settings.Rotation);
+        Assert.Equal(90, settings.Rotation);
         Assert.Equal(CrosshairSettings.MaxRingRadius, settings.RingRadius);
         Assert.Equal(CrosshairSettings.MinRingThickness, settings.RingThickness);
         Assert.Equal(CrosshairSettings.MaxShadowSize, settings.ShadowSize);

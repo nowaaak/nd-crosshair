@@ -9,7 +9,10 @@ public sealed record CrosshairSettings
     public const int MinGap = 0;
     public const int MaxGap = 50;
     public const int MinRotation = 0;
-    public const int MaxRotation = 90;
+    public const int MaxRotation = 359;
+    public const int MinArmCount = 2;
+    public const int MaxArmCount = 8;
+    public const int DefaultArmCount = 4;
     public const int MinDotSize = 1;
     public const int MaxDotSize = 20;
     public const int MinRingRadius = 2;
@@ -34,6 +37,8 @@ public sealed record CrosshairSettings
     public bool ShowLeft { get; init; } = true;
 
     public bool ShowRight { get; init; } = true;
+
+    public int ArmCount { get; init; } = DefaultArmCount;
 
     public int LineLength { get; init; } = 6;
 
@@ -80,7 +85,7 @@ public sealed record CrosshairSettings
     public bool HasDotParityMismatch() =>
         ShowDot
         && LineLength > 0
-        && (ShowTop || ShowBottom || ShowLeft || ShowRight)
+        && (ArmCount != DefaultArmCount || ShowTop || ShowBottom || ShowLeft || ShowRight)
         && DotSize % 2 != LineThickness % 2;
 
     public CrosshairSettings Clamp() => this with
@@ -89,6 +94,7 @@ public sealed record CrosshairSettings
         LineThickness = Math.Clamp(LineThickness, MinLineThickness, MaxLineThickness),
         Gap = Math.Clamp(Gap, MinGap, MaxGap),
         Rotation = Math.Clamp(Rotation, MinRotation, MaxRotation),
+        ArmCount = Math.Clamp(ArmCount, MinArmCount, MaxArmCount),
         DotSize = Math.Clamp(DotSize, MinDotSize, MaxDotSize),
         RingRadius = Math.Clamp(RingRadius, MinRingRadius, MaxRingRadius),
         RingThickness = Math.Clamp(RingThickness, MinRingThickness, MaxRingThickness),

@@ -34,7 +34,10 @@
                     <StackPanel Visibility="{Binding DesignTab, Converter={StaticResource EnumVisibility}, ConverterParameter=Shape}">
                         <GroupBox Header="{l:T CardLines}">
                             <StackPanel>
-                                <WrapPanel Margin="0,0,0,6">
+                                <app:SettingSlider Label="{l:T ArmCount}" Value="{Binding ArmCount}"
+                                                   Minimum="{x:Static core:CrosshairSettings.MinArmCount}"
+                                                   Maximum="{x:Static core:CrosshairSettings.MaxArmCount}" />
+                                <WrapPanel Margin="0,6,0,6" Visibility="{Binding IsFourArms, Converter={StaticResource Visible}}">
                                     <CheckBox Style="{StaticResource ChipCheckBox}" Content="{l:T LineTop}" IsChecked="{Binding ShowTop}" />
                                     <CheckBox Style="{StaticResource ChipCheckBox}" Content="{l:T LineBottom}" IsChecked="{Binding ShowBottom}" />
                                     <CheckBox Style="{StaticResource ChipCheckBox}" Content="{l:T LineLeft}" IsChecked="{Binding ShowLeft}" />

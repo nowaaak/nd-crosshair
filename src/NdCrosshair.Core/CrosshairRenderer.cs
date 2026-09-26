@@ -65,7 +65,15 @@ public static class CrosshairRenderer
         var gap = s.Gap;
         var length = s.LineLength;
 
-        if (length > 0)
+        if (length > 0 && s.ArmCount != CrosshairSettings.DefaultArmCount)
+        {
+            for (var arm = 0; arm < s.ArmCount; arm++)
+            {
+                var angle = s.Rotation + arm * 360.0 / s.ArmCount;
+                shapes.Add(new RectShape(low - grow, low - gap - length - grow, high + grow, low - gap + grow, angle, center));
+            }
+        }
+        else if (length > 0)
         {
             if (s.ShowTop)
             {

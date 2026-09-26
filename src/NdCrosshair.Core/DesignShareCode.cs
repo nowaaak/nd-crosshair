@@ -105,7 +105,8 @@ public static class DesignShareCode
         return true;
     }
 
-    private static bool FitsClassicCode(CrosshairSettings settings) => settings.Rotation <= MaxClassicRotation;
+    private static bool FitsClassicCode(CrosshairSettings settings) =>
+        settings.Rotation <= MaxClassicRotation && settings.ArmCount == CrosshairSettings.DefaultArmCount;
 
     private static bool TryInflate(byte[] compressed, out byte[] json)
     {

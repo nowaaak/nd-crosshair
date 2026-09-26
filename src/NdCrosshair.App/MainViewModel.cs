@@ -172,6 +172,14 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
         set => Edit(Current with { ShowRight = value });
     }
 
+    public int ArmCount
+    {
+        get => Current.ArmCount;
+        set => Edit(Current with { ArmCount = value });
+    }
+
+    public bool IsFourArms => Current.ArmCount == CrosshairSettings.DefaultArmCount;
+
     public int LineLength
     {
         get => Current.LineLength;

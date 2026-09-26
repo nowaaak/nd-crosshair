@@ -35,6 +35,7 @@ public static class ShareCode
     private const byte ExtraFlagRoundDot = 1 << 0;
     private const byte KnownExtraFlags = ExtraFlagRoundDot;
     private const byte RemovedContrastMode = 2;
+    private const int LegacyMaxRotation = 90;
 
     public static string Encode(CrosshairSettings settings)
     {
@@ -59,7 +60,7 @@ public static class ShareCode
         data[5] = (byte)s.DotSize;
         data[6] = (byte)s.OutlineThickness;
         data[7] = (byte)s.Opacity;
-        data[8] = (byte)s.Rotation;
+        data[8] = (byte)Math.Min(s.Rotation, LegacyMaxRotation);
         data[9] = (byte)s.RingRadius;
         data[10] = (byte)s.RingThickness;
         data[11] = (byte)s.ShadowSize;
@@ -194,7 +195,7 @@ public static class ShareCode
             DotSize = data[5],
             OutlineThickness = data[6],
             Opacity = data[7],
-            Rotation = data[8],
+            Rotation = Math.Min((int)data[8], LegacyMaxRotation),
             RingRadius = data[9],
             RingThickness = data[10],
             ShadowSize = data[11],
