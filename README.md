@@ -15,19 +15,25 @@ A free, open source crosshair overlay for Windows. It draws a fully customizable
   - **Contrast**: keeps your color while it stays visible and switches to a high-contrast color when it blends into the background (color distance in CIE Lab with hysteresis to prevent flicker)
 - Anti-aliasing through 4×4 supersampling. Straight edges stay pixel sharp.
 - Live preview on four backgrounds (dark, light, sky, forest)
+- A hint when dot size and line thickness have different parity, which puts the dot half a pixel off center
 
 ### Presets
-- Unlimited presets with thumbnails
+- Unlimited presets with thumbnails, each with an optional hotkey
 - Share codes (`NDX3-...`) to share and import presets. Older `NDX1-` and `NDX2-` codes are still supported.
+- **Game code import**: CS2 codes (`CSGO-...`, the pixel format introduced with the September 2026 update) and Valorant codes (`0;P;...`). Anything that cannot be mapped exactly (for example outer lines or dynamic spread) is listed after the import. CS2 codes are scaled to the height of the selected monitor. Old CS2 codes in the unit format are rejected because CS2 itself no longer accepts them.
 
 ### Overlay
 - Monitor selection and pixel offset
-- **Show only over the game**: hides the overlay while another window is in the foreground. Only the window title is checked, the game process is never accessed. "Capture window" picks up the game's title after three seconds.
+- **Games**: a list of process names (`cs2.exe`, exact match) or parts of window titles. Each game can be linked to a preset that becomes active when you switch to the game. "Capture window" picks up the process of the foreground window after three seconds. Older configurations with window titles are migrated automatically.
+- **Show only over the game**: hides the overlay while no game from the list is in the foreground
+- **Hide while aiming**: right or middle mouse button, mouse 4 or mouse 5, either hold or toggle
 - **Streamer mode**: the crosshair does not appear in OBS, Discord or screenshots (`SetWindowDisplayAffinity`, Windows 10 2004 or later)
 
 ### Hotkeys
-- Toggle overlay (default: F8), next preset, previous preset
-- Optional notification when switching presets
+- Toggle overlay (default: F8), next preset, previous preset, one hotkey per preset
+- Optional: move the crosshair with Alt + Shift + arrow keys, Alt + Shift + Home resets the position
+- Key combinations assigned twice are detected and shown
+- Optional notification when switching presets, shown on the overlay's monitor
 
 ### System
 - Start with Windows, start in background, minimize to the notification area, keep running when closed
@@ -65,7 +71,7 @@ The settings open on first launch. After that the app starts in the background b
 
 "Start with Windows" registers the path of the currently running executable under `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`. Enable it from the executable you actually want to keep using.
 
-The configuration is stored in `%APPDATA%\NdCrosshair\config.json`. A corrupted file is backed up as `config.json.corrupt-<timestamp>` and replaced with defaults.
+The configuration is stored in `%APPDATA%\NdCrosshair\config.json`. A corrupted file is backed up as `config.json.corrupt-<timestamp>` and replaced with defaults. If the file is locked or unreadable, the app starts with defaults and does not save anything in that session, so the file stays untouched.
 
 ## Releasing
 
@@ -74,22 +80,25 @@ Pushing a tag like `v1.0.0` runs the release workflow. It tests, builds both var
 ## Games and anti-cheat
 
 - In Fortnite, set the window mode to **Windowed Fullscreen**. In exclusive fullscreen, Windows cannot draw other windows on top of the game.
-- The overlay never touches the game process. It does not read memory, inject code, install keyboard or mouse hooks, access the network or require admin rights.
+- The overlay never touches the game process. It does not open a handle to the game, read memory, inject code, install keyboard or mouse hooks, access the network or require admin rights.
+- To detect games, the app reads the foreground window's title and the process name from the Windows process list (`CreateToolhelp32Snapshot`), just like Task Manager. The list is only read when a different window comes to the foreground.
+- "Hide while aiming" polls the state of the selected mouse button about a hundred times per second (`GetAsyncKeyState`). This is not a hook and does not change any input. Polling only runs while the feature is enabled and the overlay is visible.
 - The only exception is the **Contrast** color mode: it reads a small frame of the screen around the crosshair about ten times per second (`BitBlt`). The game itself is not accessed, but there is no guarantee that anti-cheat systems will always tolerate this. The mode is off by default.
 - Game publishers can change their rules at any time. No overlay tool can guarantee that you will never be banned. Use it at your own risk and check the rules of competitive events.
 - Hotkeys are registered system-wide. The game no longer receives keys that are assigned here.
 
 ## Project structure
 
-- `src/NdCrosshair.Core`: settings, renderer (rasterization and coloring are separate), color math, adaptive color selection, share codes, configuration with export and import, translations. No Windows dependencies, covered by tests.
+- `src/NdCrosshair.Core`: settings, renderer (rasterization and coloring are separate), color math, adaptive color selection, share codes, CS2 and Valorant code import, game rules, hotkey conflicts, configuration with export, import and migration, translations. No Windows dependencies, covered by tests.
 - `src/NdCrosshair.App`: WPF interface (`Views`, `Controls`, `Theme.xaml`), the overlay as a native Win32 layered window, `OverlayController` for color modes and visibility, and services for screen sampling, foreground detection, autostart and notifications.
 - `tests/NdCrosshair.Core.Tests`: xUnit tests, including a check that every translation key used in the app exists in both languages.
 
 ## Roadmap ideas
 
 - Xbox Game Bar widget for exclusive fullscreen
-- Hide while holding the right mouse button (ADS)
 - Custom PNG images as crosshair
+- Separate color and opacity for lines, dot and ring, outer lines
+- Firing animation (lines spread while shooting)
 
 ## Feedback
 
