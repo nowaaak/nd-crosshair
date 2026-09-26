@@ -2,16 +2,17 @@ namespace NdCrosshair.Core;
 
 public static class DesignRenderer
 {
-    public static CrosshairImage Render(CrosshairDesign design) => Rasterize(design).Compose(null);
+    public static CrosshairImage Render(CrosshairDesign design, ILayerContentProvider? content = null) =>
+        Rasterize(design, 0, content).Compose(null);
 
-    public static RasterizedDesign Rasterize(CrosshairDesign design, int spread = 0)
+    public static RasterizedDesign Rasterize(CrosshairDesign design, int spread = 0, ILayerContentProvider? content = null)
     {
         ArgumentNullException.ThrowIfNull(design);
 
         var placed = new List<PlacedLayer>();
         foreach (var layer in design.Normalize().Layers.Where(layer => layer.Visible))
         {
-            if (RasterizeLayer(layer, spread) is { } placedLayer)
+            if (RasterizeLayer(layer, spread, content) is { } placedLayer)
             {
                 placed.Add(placedLayer);
             }
@@ -20,17 +21,84 @@ public static class DesignRenderer
         return new RasterizedDesign(placed);
     }
 
-    private static PlacedLayer? RasterizeLayer(CrosshairLayer layer, int spread) => layer switch
+    private static PlacedLayer? RasterizeLayer(CrosshairLayer layer, int spread, ILayerContentProvider? content) => layer switch
     {
         ClassicLayer classic => Place(
             classic,
             CrosshairRenderer.RasterizeClassic(CrosshairRenderer.Transform(classic.Settings, classic.Scale, spread)),
             new LayerColoring(classic.Settings.Color, classic.Settings.ColorMode, classic.Settings.RainbowSpeed)),
         ShapeLayer shape => Place(shape, RasterizeShape(shape), Coloring(shape.Style)),
+        TextLayer text when content?.RenderText(text, text.Scale / 100.0) is { } mask =>
+            Place(text, RasterizeMask(mask, text.Style), Coloring(text.Style)),
         _ => null,
     };
 
     private static LayerColoring Coloring(LayerStyle style) => new(style.Color, style.ColorMode, style.RainbowSpeed);
+
+    private static LayerRaster RasterizeMask(CoverageMask mask, LayerStyle style)
+    {
+        var outline = style.ShowOutline ? style.OutlineThickness : 0;
+        var shadow = style.ShowShadow ? style.ShadowSize : 0;
+        var origin = Math.Max(mask.Width, mask.Height) / 2 + 1 + outline + shadow;
+        var size = origin * 2 + 1;
+
+        var fill = new double[size * size];
+        var left = origin - mask.Width / 2;
+        var top = origin - mask.Height / 2;
+        for (var y = 0; y < mask.Height; y++)
+        {
+            Array.Copy(mask.Coverage, y * mask.Width, fill, (top + y) * size + left, mask.Width);
+        }
+
+        return LayerRaster.FromCoverage(
+            size,
+            fill,
+            outline > 0 ? Dilate(fill, size, outline) : null,
+            style.Opacity,
+            style.OutlineColor,
+            shadow,
+            style.ShadowOpacity,
+            style.ShadowColor);
+    }
+
+    private static double[] Dilate(double[] source, int size, int radius)
+    {
+        var reach = radius + 1;
+        var offsets = new List<(int Dx, int Dy, double Weight)>();
+        for (var dy = -reach; dy <= reach; dy++)
+        {
+            for (var dx = -reach; dx <= reach; dx++)
+            {
+                var weight = Math.Clamp(radius + 0.5 - Math.Sqrt(dx * dx + dy * dy), 0, 1);
+                if (weight > 0)
+                {
+                    offsets.Add((dx, dy, weight));
+                }
+            }
+        }
+
+        var result = new double[source.Length];
+        for (var y = 0; y < size; y++)
+        {
+            for (var x = 0; x < size; x++)
+            {
+                var value = 0.0;
+                foreach (var (dx, dy, weight) in offsets)
+                {
+                    var sx = x + dx;
+                    var sy = y + dy;
+                    if (sx >= 0 && sx < size && sy >= 0 && sy < size)
+                    {
+                        value = Math.Max(value, source[sy * size + sx] * weight);
+                    }
+                }
+
+                result[y * size + x] = value;
+            }
+        }
+
+        return result;
+    }
 
     private static LayerRaster RasterizeShape(ShapeLayer shape)
     {

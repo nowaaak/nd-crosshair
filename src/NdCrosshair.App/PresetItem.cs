@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Media;
+using NdCrosshair.App.Services;
 using NdCrosshair.Core;
 
 namespace NdCrosshair.App;
@@ -89,7 +90,7 @@ internal sealed class PresetItem : INotifyPropertyChanged
         }
     }
 
-    public ImageSource Thumbnail => thumbnail ??= CrosshairBitmaps.ToBitmapSource(DesignRenderer.Render(design));
+    public ImageSource Thumbnail => thumbnail ??= CrosshairBitmaps.ToBitmapSource(DesignRenderer.Render(design, WpfLayerContent.Instance));
 
     public Preset ToPreset() => new(Preset.NormalizeName(Name), Design) { Id = Id, Hotkey = Hotkey };
 

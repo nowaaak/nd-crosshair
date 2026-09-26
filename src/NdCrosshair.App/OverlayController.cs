@@ -159,7 +159,7 @@ internal sealed class OverlayController : IDisposable
     {
         if (!spreadCache.TryGetValue(spread, out var raster))
         {
-            raster = DesignRenderer.Rasterize(rasterizedDesign ?? new CrosshairDesign(), spread);
+            raster = DesignRenderer.Rasterize(rasterizedDesign ?? new CrosshairDesign(), spread, WpfLayerContent.Instance);
             spreadCache[spread] = raster;
         }
 

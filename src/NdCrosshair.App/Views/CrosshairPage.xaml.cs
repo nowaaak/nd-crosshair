@@ -28,6 +28,7 @@ public partial class CrosshairPage : UserControl
         var menu = new ContextMenu { PlacementTarget = (UIElement)sender, Placement = PlacementMode.Bottom };
         menu.Items.Add(CreateMenuItem(Loc.T("LayerClassic"), viewModel.AddClassicLayer));
         menu.Items.Add(CreateMenuItem(Loc.T("LayerShape"), viewModel.AddShapeLayer));
+        menu.Items.Add(CreateMenuItem(Loc.T("LayerText"), viewModel.AddTextLayer));
         menu.IsOpen = true;
     }
 

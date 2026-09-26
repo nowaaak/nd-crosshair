@@ -17,7 +17,7 @@
                 <TextBlock Text="{l:T CrosshairSubtitle}" Style="{StaticResource PageSubtitle}" />
                 <Border Style="{StaticResource SegmentHost}" Margin="0,0,0,16">
                     <StackPanel Orientation="Horizontal">
-                        <RadioButton Style="{StaticResource SegmentButton}" GroupName="DesignTab" Content="{l:T TabShape}"
+                        <RadioButton Style="{StaticResource SegmentButton}" GroupName="DesignTab" Content="{Binding DesignTabShapeLabel}"
                                      IsChecked="{Binding DesignTab, Converter={StaticResource EnumMatch}, ConverterParameter=Shape}" />
                         <RadioButton Style="{StaticResource SegmentButton}" GroupName="DesignTab" Content="{l:T TabColor}"
                                      IsChecked="{Binding DesignTab, Converter={StaticResource EnumMatch}, ConverterParameter=Color}" />
@@ -134,6 +134,28 @@
                                                        Minimum="{x:Static core:CrosshairSettings.MinRotation}"
                                                        Maximum="{x:Static core:CrosshairSettings.MaxRotation}" />
                                     <TextBlock Text="{l:T ShapeHint}" Style="{StaticResource SecondaryText}" FontSize="12"
+                                               TextWrapping="Wrap" Margin="0,6,0,0" />
+                                </StackPanel>
+                            </GroupBox>
+                        </StackPanel>
+
+                        <StackPanel Visibility="{Binding IsTextLayer, Converter={StaticResource Visible}}">
+                            <GroupBox Header="{l:T CardText}" Margin="0">
+                                <StackPanel>
+                                    <TextBlock Text="{l:T TextContent}" Style="{StaticResource SecondaryText}" Margin="0,0,0,4" />
+                                    <TextBox Text="{Binding TextContent, UpdateSourceTrigger=PropertyChanged}"
+                                             MaxLength="{x:Static core:TextLayer.MaxTextLength}" AutomationProperties.Name="{l:T TextContent}" />
+                                    <TextBlock Text="{l:T TextFont}" Style="{StaticResource SecondaryText}" Margin="0,12,0,4" />
+                                    <ComboBox ItemsSource="{Binding FontChoices}" SelectedItem="{Binding TextFontFamily, Mode=TwoWay}"
+                                              AutomationProperties.Name="{l:T TextFont}" />
+                                    <CheckBox Content="{l:T TextBold}" IsChecked="{Binding TextBold}" Margin="0,12,0,4" />
+                                    <app:SettingSlider Label="{l:T Size}" Value="{Binding TextFontSize}" Margin="0,8,0,0"
+                                                       Minimum="{x:Static core:TextLayer.MinFontSize}"
+                                                       Maximum="{x:Static core:TextLayer.MaxFontSize}" />
+                                    <app:SettingSlider Label="{l:T Rotation}" Value="{Binding TextRotation}"
+                                                       Minimum="{x:Static core:CrosshairSettings.MinRotation}"
+                                                       Maximum="{x:Static core:CrosshairSettings.MaxRotation}" />
+                                    <TextBlock Text="{l:T TextHint}" Style="{StaticResource SecondaryText}" FontSize="12"
                                                TextWrapping="Wrap" Margin="0,6,0,0" />
                                 </StackPanel>
                             </GroupBox>

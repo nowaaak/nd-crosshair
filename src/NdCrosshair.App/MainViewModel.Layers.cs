@@ -8,6 +8,7 @@ internal sealed partial class MainViewModel
 {
     private static readonly string ClassicGlyph = char.ConvertFromUtf32(0xE710);
     private static readonly string ShapeGlyph = char.ConvertFromUtf32(0xF158);
+    private static readonly string TextGlyph = char.ConvertFromUtf32(0xE8D2);
 
     private int selectedLayerIndex;
     private bool syncingLayers;
@@ -87,6 +88,7 @@ internal sealed partial class MainViewModel
     {
         ClassicLayer classic => LayerStyle.From(classic.Settings),
         ShapeLayer shape => shape.Style,
+        TextLayer text => text.Style,
         _ => new LayerStyle(),
     };
 
@@ -96,6 +98,9 @@ internal sealed partial class MainViewModel
         {
             case ClassicLayer classic:
                 EditLayer(classic with { Settings = style.ApplyTo(classic.Settings) });
+                break;
+            case TextLayer text:
+                EditLayer(text with { Style = style });
                 break;
             case ShapeLayer shape:
                 EditLayer(shape with { Style = style });
@@ -248,6 +253,7 @@ internal sealed partial class MainViewModel
     private static string LayerTitle(CrosshairLayer layer) => layer switch
     {
         ShapeLayer shape => ShapeName(shape.Kind),
+        TextLayer text => string.IsNullOrWhiteSpace(text.Text) ? Loc.T("LayerText") : text.Text,
         _ => Loc.T("LayerClassic"),
     };
 
@@ -263,6 +269,7 @@ internal sealed partial class MainViewModel
     private static string LayerGlyph(CrosshairLayer layer) => layer switch
     {
         ShapeLayer => ShapeGlyph,
+        TextLayer => TextGlyph,
         _ => ClassicGlyph,
     };
 }

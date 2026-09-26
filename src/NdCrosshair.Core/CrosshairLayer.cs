@@ -5,6 +5,7 @@ namespace NdCrosshair.Core;
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
 [JsonDerivedType(typeof(ClassicLayer), "classic")]
 [JsonDerivedType(typeof(ShapeLayer), "shape")]
+[JsonDerivedType(typeof(TextLayer), "text")]
 public abstract record CrosshairLayer
 {
     public const int MaxOffset = 200;
@@ -91,4 +92,39 @@ public sealed record ShapeLayer : CrosshairLayer
         Rotation = Math.Clamp(Rotation, CrosshairSettings.MinRotation, CrosshairSettings.MaxRotation),
         Style = (Style ?? new LayerStyle()).Clamp(),
     };
+}
+
+public sealed record TextLayer : CrosshairLayer
+{
+    public const int MaxTextLength = 32;
+    public const int MinFontSize = 6;
+    public const int MaxFontSize = 96;
+    public const int MaxFontFamilyLength = 64;
+    public const string DefaultFontFamily = "Segoe UI";
+
+    public string Text { get; init; } = "ND";
+
+    public string FontFamily { get; init; } = DefaultFontFamily;
+
+    public int FontSize { get; init; } = 14;
+
+    public bool Bold { get; init; } = true;
+
+    public int Rotation { get; init; }
+
+    public LayerStyle Style { get; init; } = new();
+
+    protected override CrosshairLayer NormalizeContent()
+    {
+        var text = (Text ?? string.Empty).ReplaceLineEndings(" ");
+        var family = string.IsNullOrWhiteSpace(FontFamily) ? DefaultFontFamily : FontFamily.Trim();
+        return this with
+        {
+            Text = text.Length > MaxTextLength ? text[..MaxTextLength] : text,
+            FontFamily = family.Length > MaxFontFamilyLength ? family[..MaxFontFamilyLength] : family,
+            FontSize = Math.Clamp(FontSize, MinFontSize, MaxFontSize),
+            Rotation = Math.Clamp(Rotation, CrosshairSettings.MinRotation, CrosshairSettings.MaxRotation),
+            Style = (Style ?? new LayerStyle()).Clamp(),
+        };
+    }
 }

@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using NdCrosshair.App.Localization;
+using NdCrosshair.App.Services;
 using NdCrosshair.Core;
 
 namespace NdCrosshair.App;
@@ -577,7 +578,7 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
 
     private void RenderPreview()
     {
-        var rasterized = DesignRenderer.Rasterize(selectedPreset.Design);
+        var rasterized = DesignRenderer.Rasterize(selectedPreset.Design, 0, WpfLayerContent.Instance);
         var image = rasterized.Compose(null);
         IsCrosshairEmpty = !image.Pixels.Where((_, index) => index % CrosshairImage.BytesPerPixel == 3).Any(alpha => alpha > 0);
         PreviewImage = CrosshairBitmaps.ToBitmapSource(image);
