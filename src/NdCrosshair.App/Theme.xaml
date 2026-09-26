@@ -723,6 +723,10 @@
 
     <Style TargetType="ListBoxItem" BasedOn="{StaticResource ListItemBase}" />
 
+    <Style TargetType="ScrollViewer">
+        <Setter Property="controls:SmoothScrolling.IsEnabled" Value="True" />
+    </Style>
+
     <Style TargetType="ListBox">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderThickness" Value="0" />
