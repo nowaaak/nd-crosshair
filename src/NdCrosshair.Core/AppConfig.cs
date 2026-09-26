@@ -51,6 +51,21 @@ public sealed record HotkeyBinding(int Modifiers, int VirtualKey)
     }
 }
 
+public enum AimButton
+{
+    None,
+    Right,
+    Middle,
+    Back,
+    Forward,
+}
+
+public enum AimHideMode
+{
+    Hold,
+    Toggle,
+}
+
 public enum AppLanguage
 {
     System,
@@ -90,6 +105,10 @@ public sealed record AppConfig
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IReadOnlyList<string>? GameWindowTitles { get; init; }
+
+    public AimButton AimHideButton { get; init; }
+
+    public AimHideMode AimHideMode { get; init; }
 
     public bool StreamerMode { get; init; }
 
@@ -135,6 +154,8 @@ public sealed record AppConfig
             PreviousPresetHotkey = (PreviousPresetHotkey ?? HotkeyBinding.None).Normalize(),
             GameRules = NormalizeGameRules(presets),
             GameWindowTitles = null,
+            AimHideButton = Enum.IsDefined(AimHideButton) ? AimHideButton : AimButton.None,
+            AimHideMode = Enum.IsDefined(AimHideMode) ? AimHideMode : AimHideMode.Hold,
             Language = Enum.IsDefined(Language) ? Language : AppLanguage.System,
         };
     }

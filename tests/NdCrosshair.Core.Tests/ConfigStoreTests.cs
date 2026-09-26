@@ -122,6 +122,8 @@ public sealed class ConfigStoreTests : IDisposable
                 new GameRule(GameMatchKind.Process, "VALORANT-Win64-Shipping.exe") { PresetId = preset.Id },
                 new GameRule(GameMatchKind.WindowTitle, "Fortnite"),
             ],
+            AimHideButton = AimButton.Back,
+            AimHideMode = AimHideMode.Toggle,
             PositionHotkeysEnabled = true,
             StreamerMode = true,
             StartMinimized = false,
@@ -212,6 +214,7 @@ public sealed class ConfigStoreTests : IDisposable
                 new GameRule(GameMatchKind.Process, "CS2.EXE"),
                 new GameRule(GameMatchKind.WindowTitle, "Apex") { PresetId = Guid.NewGuid() },
             ],
+            AimHideButton = (AimButton)99,
         }.Normalize();
 
         Assert.Equal(3, config.Presets.Select(preset => preset.Id).Distinct().Count());
@@ -221,6 +224,7 @@ public sealed class ConfigStoreTests : IDisposable
         Assert.Equal("cs2.exe", config.GameRules[0].Pattern);
         Assert.Equal(shared, config.GameRules[0].PresetId);
         Assert.Null(config.GameRules[1].PresetId);
+        Assert.Equal(AimButton.None, config.AimHideButton);
     }
 
     [Fact]

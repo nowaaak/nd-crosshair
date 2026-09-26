@@ -91,6 +91,35 @@
                 </controls:SettingCard>
 
                 <TextBlock Text="{l:T SectionBehavior}" Style="{StaticResource SectionHeader}" />
+                <controls:SettingCard Glyph="&#xE962;" Header="{l:T AimHideHeader}" Description="{l:T AimHideDescription}">
+                    <controls:SettingCard.Body>
+                        <StackPanel>
+                            <Border Style="{StaticResource SegmentHost}" HorizontalAlignment="Left">
+                                <StackPanel Orientation="Horizontal">
+                                    <RadioButton Style="{StaticResource SegmentButton}" GroupName="AimButton" Content="{l:T AimButtonNone}"
+                                                 IsChecked="{Binding AimHideButton, Converter={StaticResource EnumMatch}, ConverterParameter=None}" />
+                                    <RadioButton Style="{StaticResource SegmentButton}" GroupName="AimButton" Content="{l:T AimButtonRight}"
+                                                 IsChecked="{Binding AimHideButton, Converter={StaticResource EnumMatch}, ConverterParameter=Right}" />
+                                    <RadioButton Style="{StaticResource SegmentButton}" GroupName="AimButton" Content="{l:T AimButtonMiddle}"
+                                                 IsChecked="{Binding AimHideButton, Converter={StaticResource EnumMatch}, ConverterParameter=Middle}" />
+                                    <RadioButton Style="{StaticResource SegmentButton}" GroupName="AimButton" Content="{l:T AimButtonBack}"
+                                                 IsChecked="{Binding AimHideButton, Converter={StaticResource EnumMatch}, ConverterParameter=Back}" />
+                                    <RadioButton Style="{StaticResource SegmentButton}" GroupName="AimButton" Content="{l:T AimButtonForward}"
+                                                 IsChecked="{Binding AimHideButton, Converter={StaticResource EnumMatch}, ConverterParameter=Forward}" />
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource SegmentHost}" HorizontalAlignment="Left" Margin="0,10,0,0"
+                                    Visibility="{Binding IsAimHideEnabled, Converter={StaticResource Visible}}">
+                                <StackPanel Orientation="Horizontal">
+                                    <RadioButton Style="{StaticResource SegmentButton}" GroupName="AimMode" Content="{l:T AimModeHold}"
+                                                 IsChecked="{Binding AimHideMode, Converter={StaticResource EnumMatch}, ConverterParameter=Hold}" />
+                                    <RadioButton Style="{StaticResource SegmentButton}" GroupName="AimMode" Content="{l:T AimModeToggle}"
+                                                 IsChecked="{Binding AimHideMode, Converter={StaticResource EnumMatch}, ConverterParameter=Toggle}" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </controls:SettingCard.Body>
+                </controls:SettingCard>
                 <controls:SettingCard Glyph="&#xE714;" Header="{l:T StreamerHeader}" Description="{l:T StreamerDescription}">
                     <CheckBox Style="{StaticResource SwitchCheckBox}" Margin="0" IsChecked="{Binding StreamerMode}"
                               AutomationProperties.Name="{l:T StreamerHeader}" />

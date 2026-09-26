@@ -454,6 +454,8 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
         PositionHotkeysEnabled = positionHotkeysEnabled,
         ShowOnlyOverGame = showOnlyOverGame,
         GameRules = GameRules.Select(rule => rule.ToRule()).ToList(),
+        AimHideButton = aimHideButton,
+        AimHideMode = aimHideMode,
         StreamerMode = streamerMode,
         StartMinimized = startMinimized,
         MinimizeToTray = minimizeToTray,
@@ -508,6 +510,8 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
             AddGameRuleItem(new GameRuleItem(rule));
         }
 
+        aimHideButton = config.AimHideButton;
+        aimHideMode = config.AimHideMode;
         streamerMode = config.StreamerMode;
         startMinimized = config.StartMinimized;
         minimizeToTray = config.MinimizeToTray;

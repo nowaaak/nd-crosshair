@@ -29,6 +29,8 @@ internal sealed partial class MainViewModel
     private string captureStatus = string.Empty;
     private DispatcherTimer? captureTimer;
     private int captureRemaining;
+    private AimButton aimHideButton;
+    private AimHideMode aimHideMode;
     private bool streamerMode;
     private bool startWithWindows;
     private bool startMinimized;
@@ -44,6 +46,33 @@ internal sealed partial class MainViewModel
     public ObservableCollection<PresetChoice> PresetChoices { get; } = [];
 
     public bool HasGameRules => GameRules.Count > 0;
+
+    public AimButton AimHideButton
+    {
+        get => aimHideButton;
+        set
+        {
+            if (Enum.IsDefined(value) && SetField(ref aimHideButton, value))
+            {
+                OnPropertyChanged(nameof(IsAimHideEnabled));
+                Changed?.Invoke(this, ChangeKind.Overlay);
+            }
+        }
+    }
+
+    public bool IsAimHideEnabled => aimHideButton != AimButton.None;
+
+    public AimHideMode AimHideMode
+    {
+        get => aimHideMode;
+        set
+        {
+            if (Enum.IsDefined(value))
+            {
+                SetOverlayField(ref aimHideMode, value);
+            }
+        }
+    }
 
     public bool PositionHotkeysEnabled
     {
@@ -308,6 +337,8 @@ internal sealed partial class MainViewModel
         overlayVisible,
         showOnlyOverGame,
         GameRules.Select(rule => rule.ToRule()).ToList(),
+        aimHideButton,
+        aimHideMode,
         streamerMode);
 
     private void OnCaptureTick(object? sender, EventArgs e)

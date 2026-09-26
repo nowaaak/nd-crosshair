@@ -13,6 +13,8 @@ internal sealed record OverlayOptions(
     bool Visible,
     bool ShowOnlyOverGame,
     IReadOnlyList<GameRule> GameRules,
+    AimButton AimHideButton,
+    AimHideMode AimHideMode,
     bool StreamerMode);
 
 internal sealed class OverlayController : IDisposable
@@ -20,12 +22,14 @@ internal sealed class OverlayController : IDisposable
     private static readonly TimeSpan RainbowInterval = TimeSpan.FromMilliseconds(33);
     private static readonly TimeSpan AdaptiveInterval = TimeSpan.FromMilliseconds(100);
     private static readonly TimeSpan ForegroundInterval = TimeSpan.FromMilliseconds(250);
+    private static readonly TimeSpan AimInterval = TimeSpan.FromMilliseconds(10);
 
     private readonly OverlayWindow window = new();
     private readonly ScreenSampler sampler = new();
     private readonly DispatcherTimer rainbowTimer;
     private readonly DispatcherTimer adaptiveTimer;
     private readonly DispatcherTimer foregroundTimer;
+    private readonly DispatcherTimer aimTimer;
     private readonly Stopwatch clock = Stopwatch.StartNew();
 
     private OverlayOptions? options;
@@ -35,6 +39,8 @@ internal sealed class OverlayController : IDisposable
     private CrosshairColor? currentFill;
     private bool gameInForeground = true;
     private GameRule? detectedRule;
+    private bool aimHidden;
+    private bool aimButtonDown;
     private bool? streamerMode;
 
     public OverlayController()
@@ -43,9 +49,11 @@ internal sealed class OverlayController : IDisposable
         rainbowTimer = new DispatcherTimer(RainbowInterval, DispatcherPriority.Render, (_, _) => OnRainbowTick(), dispatcher);
         adaptiveTimer = new DispatcherTimer(AdaptiveInterval, DispatcherPriority.Background, (_, _) => OnAdaptiveTick(), dispatcher);
         foregroundTimer = new DispatcherTimer(ForegroundInterval, DispatcherPriority.Background, (_, _) => OnForegroundTick(), dispatcher);
+        aimTimer = new DispatcherTimer(AimInterval, DispatcherPriority.Render, (_, _) => OnAimTick(), dispatcher);
         rainbowTimer.Stop();
         adaptiveTimer.Stop();
         foregroundTimer.Stop();
+        aimTimer.Stop();
         window.RenderFailed += (_, _) => RenderFailed?.Invoke(this, EventArgs.Empty);
     }
 
@@ -95,6 +103,11 @@ internal sealed class OverlayController : IDisposable
             detectedRule = null;
         }
 
+        if (previous?.AimHideButton != next.AimHideButton || previous?.AimHideMode != next.AimHideMode)
+        {
+            ResetAim();
+        }
+
         if (next.ShowOnlyOverGame)
         {
             gameInForeground = ForegroundWindow.IsGameOrSettings(ForegroundWindow.Get(), next.GameRules);
@@ -109,6 +122,7 @@ internal sealed class OverlayController : IDisposable
         rainbowTimer.Stop();
         adaptiveTimer.Stop();
         foregroundTimer.Stop();
+        aimTimer.Stop();
         window.Dispose();
         sampler.Dispose();
     }
@@ -120,12 +134,20 @@ internal sealed class OverlayController : IDisposable
             return;
         }
 
-        var shown = options.Visible && (!options.ShowOnlyOverGame || gameInForeground);
+        var active = options.Visible && (!options.ShowOnlyOverGame || gameInForeground);
+        var aimWatched = active && options.AimHideButton != AimButton.None;
+        if (!aimWatched)
+        {
+            ResetAim();
+        }
+
+        var shown = active && !aimHidden;
         window.SetVisible(shown);
 
         var mode = rasterizedSettings?.ColorMode ?? CrosshairColorMode.Static;
         SetTimer(rainbowTimer, shown && mode == CrosshairColorMode.Rainbow);
         SetTimer(adaptiveTimer, shown && mode == CrosshairColorMode.Adaptive);
+        SetTimer(aimTimer, aimWatched);
         SetTimer(foregroundTimer, (options.Visible && options.ShowOnlyOverGame) || options.GameRules.Any(rule => rule.PresetId is not null));
     }
 
@@ -205,6 +227,32 @@ internal sealed class OverlayController : IDisposable
             gameInForeground = matches;
             UpdateVisibility();
         }
+    }
+
+    private void OnAimTick()
+    {
+        if (options is null)
+        {
+            return;
+        }
+
+        var pressed = MouseButtonState.IsPressed(options.AimHideButton);
+        var hidden = options.AimHideMode == AimHideMode.Hold
+            ? pressed
+            : pressed && !aimButtonDown ? !aimHidden : aimHidden;
+        aimButtonDown = pressed;
+
+        if (hidden != aimHidden)
+        {
+            aimHidden = hidden;
+            UpdateVisibility();
+        }
+    }
+
+    private void ResetAim()
+    {
+        aimHidden = false;
+        aimButtonDown = false;
     }
 
     private static void SetTimer(DispatcherTimer timer, bool enabled)
