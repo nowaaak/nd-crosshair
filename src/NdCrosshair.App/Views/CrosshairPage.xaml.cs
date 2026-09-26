@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using Microsoft.Win32;
 using NdCrosshair.App.Localization;
 
 namespace NdCrosshair.App.Views;
@@ -29,6 +30,13 @@ public partial class CrosshairPage : UserControl
         menu.Items.Add(CreateMenuItem(Loc.T("LayerClassic"), viewModel.AddClassicLayer));
         menu.Items.Add(CreateMenuItem(Loc.T("LayerShape"), viewModel.AddShapeLayer));
         menu.Items.Add(CreateMenuItem(Loc.T("LayerText"), viewModel.AddTextLayer));
+        menu.Items.Add(CreateMenuItem(Loc.T("LayerImage"), () =>
+        {
+            if (PickImage() is { } path)
+            {
+                viewModel.AddImageLayer(path);
+            }
+        }));
         menu.IsOpen = true;
     }
 
@@ -50,6 +58,25 @@ public partial class CrosshairPage : UserControl
         {
             viewModel.RemoveSelectedLayer();
         }
+    }
+
+    private void OnReplaceImage(object sender, RoutedEventArgs e)
+    {
+        if (PickImage() is { } path)
+        {
+            PageActions.ViewModel(this).ReplaceImage(path);
+        }
+    }
+
+    private string? PickImage()
+    {
+        var dialog = new OpenFileDialog
+        {
+            Filter = Loc.T("ImageFileFilter"),
+            CheckFileExists = true,
+        };
+
+        return dialog.ShowDialog(Window.GetWindow(this)) == true ? dialog.FileName : null;
     }
 
     private static MenuItem CreateMenuItem(string header, Action onClick)

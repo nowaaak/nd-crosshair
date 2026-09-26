@@ -129,6 +129,8 @@
                     <TextBlock Text="{l:T ImportCodeHint}" Style="{StaticResource SecondaryText}" FontSize="12" TextWrapping="Wrap" Margin="0,6,0,0" />
                     <TextBlock Text="{Binding ShareStatus}" Style="{StaticResource SecondaryText}" FontSize="12" Margin="0,8,0,0"
                                TextWrapping="Wrap" Visibility="{Binding ShareStatus, Converter={StaticResource Visible}}" />
+                    <TextBlock Text="{l:T ShareOmitsImages}" Style="{StaticResource SecondaryText}" FontSize="12" Margin="0,8,0,0"
+                               TextWrapping="Wrap" Visibility="{Binding ShareOmitsImages, Converter={StaticResource Visible}}" />
                 </StackPanel>
             </GroupBox>
         </StackPanel>

@@ -15,7 +15,7 @@ public static class DesignShareCode
     {
         ArgumentNullException.ThrowIfNull(design);
 
-        var normalized = design.Normalize();
+        var normalized = (design with { Layers = design.Layers.Where(layer => layer is not ImageLayer).ToList() }).Normalize();
         if (normalized.TryGetClassicOnly(out var classic) && FitsClassicCode(classic))
         {
             return ShareCode.Encode(classic);
@@ -34,6 +34,8 @@ public static class DesignShareCode
         payload[^1] = ShareCode.Crc8(compressed);
         return Prefix + Convert.ToBase64String(payload).TrimEnd('=').Replace('+', '-').Replace('/', '_');
     }
+
+    public static bool OmitsLayers(CrosshairDesign design) => design.Layers.Any(layer => layer is ImageLayer);
 
     public static bool TryDecode(string? code, out CrosshairDesign design, out ShareCodeError error)
     {

@@ -6,6 +6,7 @@ namespace NdCrosshair.Core;
 [JsonDerivedType(typeof(ClassicLayer), "classic")]
 [JsonDerivedType(typeof(ShapeLayer), "shape")]
 [JsonDerivedType(typeof(TextLayer), "text")]
+[JsonDerivedType(typeof(ImageLayer), "image")]
 public abstract record CrosshairLayer
 {
     public const int MaxOffset = 200;
@@ -127,4 +128,33 @@ public sealed record TextLayer : CrosshairLayer
             Style = (Style ?? new LayerStyle()).Clamp(),
         };
     }
+}
+
+public sealed record ImageLayer : CrosshairLayer
+{
+    public const int MinWidth = 4;
+    public const int MaxWidth = 400;
+    public const int MaxFileNameLength = 80;
+
+    public string FileName { get; init; } = string.Empty;
+
+    public int Width { get; init; } = 48;
+
+    public int Rotation { get; init; }
+
+    public int Opacity { get; init; } = 100;
+
+    public static bool IsSafeFileName(string? fileName) =>
+        !string.IsNullOrWhiteSpace(fileName)
+        && fileName.Length <= MaxFileNameLength
+        && fileName == Path.GetFileName(fileName)
+        && fileName.IndexOfAny(Path.GetInvalidFileNameChars()) < 0;
+
+    protected override CrosshairLayer NormalizeContent() => this with
+    {
+        FileName = IsSafeFileName(FileName) ? FileName : string.Empty,
+        Width = Math.Clamp(Width, MinWidth, MaxWidth),
+        Rotation = Math.Clamp(Rotation, CrosshairSettings.MinRotation, CrosshairSettings.MaxRotation),
+        Opacity = Math.Clamp(Opacity, CrosshairSettings.MinOpacity, CrosshairSettings.MaxOpacity),
+    };
 }

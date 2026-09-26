@@ -9,6 +9,7 @@ internal sealed partial class MainViewModel
     private static readonly string ClassicGlyph = char.ConvertFromUtf32(0xE710);
     private static readonly string ShapeGlyph = char.ConvertFromUtf32(0xF158);
     private static readonly string TextGlyph = char.ConvertFromUtf32(0xE8D2);
+    private static readonly string ImageGlyph = char.ConvertFromUtf32(0xE91B);
 
     private int selectedLayerIndex;
     private bool syncingLayers;
@@ -149,10 +150,7 @@ internal sealed partial class MainViewModel
 
         selectedLayerIndex = Design.Layers.Count;
         ApplyDesign(Design with { Layers = [.. Design.Layers, layer] });
-        if (DesignTab == DesignTab.Layer)
-        {
-            DesignTab = DesignTab.Shape;
-        }
+        DesignTab = DesignTab.Shape;
     }
 
     private void EditLayer(CrosshairLayer updated)
@@ -191,6 +189,7 @@ internal sealed partial class MainViewModel
 
     private void OnLayerSelectionChanged()
     {
+        EnsureTabAvailable();
         OnPropertyChanged(string.Empty);
     }
 
@@ -199,6 +198,15 @@ internal sealed partial class MainViewModel
         var classic = Design.Layers.ToList().FindIndex(layer => layer is ClassicLayer);
         selectedLayerIndex = classic < 0 ? 0 : classic;
         SyncLayers();
+        EnsureTabAvailable();
+    }
+
+    private void EnsureTabAvailable()
+    {
+        if (SelectedLayer is ImageLayer && DesignTab == DesignTab.Color)
+        {
+            DesignTab = DesignTab.Shape;
+        }
     }
 
     private void SetLayerVisibility(LayerItem item, bool visible)
@@ -254,6 +262,7 @@ internal sealed partial class MainViewModel
     {
         ShapeLayer shape => ShapeName(shape.Kind),
         TextLayer text => string.IsNullOrWhiteSpace(text.Text) ? Loc.T("LayerText") : text.Text,
+        ImageLayer => Loc.T("LayerImage"),
         _ => Loc.T("LayerClassic"),
     };
 
@@ -270,6 +279,7 @@ internal sealed partial class MainViewModel
     {
         ShapeLayer => ShapeGlyph,
         TextLayer => TextGlyph,
+        ImageLayer => ImageGlyph,
         _ => ClassicGlyph,
     };
 }

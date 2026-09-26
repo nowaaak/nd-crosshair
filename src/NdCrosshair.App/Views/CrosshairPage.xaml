@@ -20,6 +20,7 @@
                         <RadioButton Style="{StaticResource SegmentButton}" GroupName="DesignTab" Content="{Binding DesignTabShapeLabel}"
                                      IsChecked="{Binding DesignTab, Converter={StaticResource EnumMatch}, ConverterParameter=Shape}" />
                         <RadioButton Style="{StaticResource SegmentButton}" GroupName="DesignTab" Content="{l:T TabColor}"
+                                     Visibility="{Binding HasLayerStyle, Converter={StaticResource Visible}}"
                                      IsChecked="{Binding DesignTab, Converter={StaticResource EnumMatch}, ConverterParameter=Color}" />
                         <RadioButton Style="{StaticResource SegmentButton}" GroupName="DesignTab" Content="{l:T TabEffects}"
                                      IsChecked="{Binding DesignTab, Converter={StaticResource EnumMatch}, ConverterParameter=Effects}" />
@@ -160,6 +161,30 @@
                                 </StackPanel>
                             </GroupBox>
                         </StackPanel>
+
+                        <StackPanel Visibility="{Binding IsImageLayer, Converter={StaticResource Visible}}">
+                            <GroupBox Header="{l:T CardImage}" Margin="0">
+                                <StackPanel>
+                                    <DockPanel>
+                                        <Button DockPanel.Dock="Right" Content="{l:T ImageChoose}" Click="OnReplaceImage" />
+                                        <TextBlock Text="{l:T ImageMissing}" Style="{StaticResource WarningText}" FontSize="12" TextWrapping="Wrap"
+                                                   VerticalAlignment="Center" Margin="0,0,12,0"
+                                                   Visibility="{Binding IsImageMissing, Converter={StaticResource Visible}}" />
+                                    </DockPanel>
+                                    <app:SettingSlider Label="{l:T ShapeWidth}" Value="{Binding ImageWidth}" Margin="0,8,0,0"
+                                                       Minimum="{x:Static core:ImageLayer.MinWidth}"
+                                                       Maximum="{x:Static core:ImageLayer.MaxWidth}" />
+                                    <app:SettingSlider Label="{l:T Rotation}" Value="{Binding ImageRotation}"
+                                                       Minimum="{x:Static core:CrosshairSettings.MinRotation}"
+                                                       Maximum="{x:Static core:CrosshairSettings.MaxRotation}" />
+                                    <app:SettingSlider Label="{l:T OpacityLabel}" Value="{Binding ImageOpacity}"
+                                                       Minimum="{x:Static core:CrosshairSettings.MinOpacity}"
+                                                       Maximum="{x:Static core:CrosshairSettings.MaxOpacity}" />
+                                    <TextBlock Text="{l:T ImageHint}" Style="{StaticResource SecondaryText}" FontSize="12"
+                                               TextWrapping="Wrap" Margin="0,6,0,0" />
+                                </StackPanel>
+                            </GroupBox>
+                        </StackPanel>
                     </StackPanel>
 
                     <StackPanel Visibility="{Binding DesignTab, Converter={StaticResource EnumVisibility}, ConverterParameter=Color}">
@@ -207,7 +232,7 @@
                     </StackPanel>
 
                     <StackPanel Visibility="{Binding DesignTab, Converter={StaticResource EnumVisibility}, ConverterParameter=Effects}">
-                        <GroupBox>
+                        <GroupBox Visibility="{Binding HasLayerStyle, Converter={StaticResource Visible}}">
                             <GroupBox.Header>
                                 <DockPanel>
                                     <CheckBox DockPanel.Dock="Right" Style="{StaticResource SwitchCheckBox}" Margin="0"
@@ -223,7 +248,7 @@
                             </StackPanel>
                         </GroupBox>
 
-                        <GroupBox>
+                        <GroupBox Visibility="{Binding HasLayerStyle, Converter={StaticResource Visible}}">
                             <GroupBox.Header>
                                 <DockPanel>
                                     <CheckBox DockPanel.Dock="Right" Style="{StaticResource SwitchCheckBox}" Margin="0"
@@ -398,6 +423,8 @@
                             </ListBox.ItemTemplate>
                         </ListBox>
                         <TextBlock Text="{l:T LayersHint}" Style="{StaticResource SecondaryText}" FontSize="12" TextWrapping="Wrap" Margin="0,6,0,0" />
+                        <TextBlock Text="{Binding ImageStatus}" Style="{StaticResource WarningText}" FontSize="12" TextWrapping="Wrap" Margin="0,6,0,0"
+                                   Visibility="{Binding ImageStatus, Converter={StaticResource Visible}}" />
                     </StackPanel>
                 </GroupBox>
 
@@ -413,6 +440,8 @@
                         </DockPanel>
                         <TextBlock Text="{Binding ShareStatus}" Style="{StaticResource SecondaryText}" FontSize="12" Margin="0,6,0,0"
                                    Visibility="{Binding ShareStatus, Converter={StaticResource Visible}}" />
+                        <TextBlock Text="{l:T ShareOmitsImages}" Style="{StaticResource SecondaryText}" FontSize="12" Margin="0,6,0,0" TextWrapping="Wrap"
+                                   Visibility="{Binding ShareOmitsImages, Converter={StaticResource Visible}}" />
                     </StackPanel>
                 </GroupBox>
             </StackPanel>

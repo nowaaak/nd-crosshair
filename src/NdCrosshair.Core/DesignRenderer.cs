@@ -30,8 +30,42 @@ public static class DesignRenderer
         ShapeLayer shape => Place(shape, RasterizeShape(shape), Coloring(shape.Style)),
         TextLayer text when content?.RenderText(text, text.Scale / 100.0) is { } mask =>
             Place(text, RasterizeMask(mask, text.Style), Coloring(text.Style)),
+        ImageLayer image when content?.RenderImage(image, image.Scale / 100.0, null) is { } frame =>
+            PlaceImage(image, frame, content),
         _ => null,
     };
+
+    private static PlacedLayer PlaceImage(ImageLayer image, ImageFrame first, ILayerContentProvider content)
+    {
+        var scale = image.Scale / 100.0;
+        Func<TimeSpan, LayerRaster?>? frames = content.IsAnimated(image)
+            ? time => content.RenderImage(image, scale, time) is { } frame ? RasterizeImage(frame, image) : null
+            : null;
+        return new PlacedLayer(
+            RasterizeImage(first, image),
+            image.OffsetX,
+            image.OffsetY,
+            new LayerColoring(CrosshairColor.Black, CrosshairColorMode.Static, CrosshairSettings.MinRainbowSpeed),
+            frames);
+    }
+
+    private static LayerRaster RasterizeImage(ImageFrame frame, ImageLayer image)
+    {
+        var origin = Math.Max(frame.Width, frame.Height) / 2 + 1;
+        var size = origin * 2 + 1;
+        var pixels = new double[size * size * 4];
+        var left = origin - frame.Width / 2;
+        var top = origin - frame.Height / 2;
+        for (var y = 0; y < frame.Height; y++)
+        {
+            for (var x = 0; x < frame.Width * 4; x++)
+            {
+                pixels[((top + y) * size + left) * 4 + x] = frame.Pixels[y * frame.Width * 4 + x] / 255.0;
+            }
+        }
+
+        return LayerRaster.FromImage(size, pixels, image.Opacity).Blurred(image.Blur);
+    }
 
     private static LayerColoring Coloring(LayerStyle style) => new(style.Color, style.ColorMode, style.RainbowSpeed);
 
@@ -134,7 +168,13 @@ internal readonly record struct LayerColoring(CrosshairColor Color, CrosshairCol
         IsAnimated && time is { } elapsed ? ColorMath.Rainbow(Color, RainbowSpeed, elapsed.TotalSeconds) : Color;
 }
 
-internal sealed record PlacedLayer(LayerRaster Raster, int OffsetX, int OffsetY, LayerColoring Coloring);
+internal sealed record PlacedLayer(LayerRaster Raster, int OffsetX, int OffsetY, LayerColoring Coloring, Func<TimeSpan, LayerRaster?>? Frames = null)
+{
+    public bool IsAnimated => Coloring.IsAnimated || Frames is not null;
+
+    public LayerRaster RasterAt(TimeSpan? time) =>
+        Frames is not null && time is { } elapsed && Frames(elapsed) is { } frame && frame.Size == Raster.Size ? frame : Raster;
+}
 
 public sealed class RasterizedDesign
 {
@@ -152,7 +192,7 @@ public sealed class RasterizedDesign
         }
 
         Size = extent * 2 + 1;
-        IsAnimated = layers.Any(layer => layer.Coloring.IsAnimated);
+        IsAnimated = layers.Any(layer => layer.IsAnimated);
     }
 
     public int Size { get; }
@@ -167,7 +207,7 @@ public sealed class RasterizedDesign
 
         foreach (var layer in layers)
         {
-            var raster = layer.Raster;
+            var raster = layer.RasterAt(time);
             var fill = layer.Coloring.At(time);
             var left = center + layer.OffsetX - raster.Origin;
             var top = center + layer.OffsetY - raster.Origin;

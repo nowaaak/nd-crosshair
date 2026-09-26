@@ -92,5 +92,9 @@ public class TextLayerTests
             LastScale = scale;
             return new CoverageMask(width, height, Enumerable.Repeat(1.0, width * height).ToArray());
         }
+
+        public ImageFrame? RenderImage(ImageLayer layer, double scale, TimeSpan? time) => null;
+
+        public bool IsAnimated(ImageLayer layer) => false;
     }
 }

@@ -20,7 +20,12 @@ internal sealed partial class MainViewModel
 
     public bool IsTextLayer => SelectedLayer is TextLayer;
 
-    public string DesignTabShapeLabel => SelectedLayer is TextLayer ? Loc.T("TabText") : Loc.T("TabShape");
+    public string DesignTabShapeLabel => SelectedLayer switch
+    {
+        TextLayer => Loc.T("TabText"),
+        ImageLayer => Loc.T("TabImage"),
+        _ => Loc.T("TabShape"),
+    };
 
     public string TextContent
     {
