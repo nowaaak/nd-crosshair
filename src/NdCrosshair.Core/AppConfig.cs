@@ -7,6 +7,10 @@ public sealed record Preset(string Name, CrosshairSettings Settings)
     public const int MaxNameLength = 40;
     public const string FallbackName = "Preset";
 
+    public Guid Id { get; init; } = Guid.NewGuid();
+
+    public HotkeyBinding Hotkey { get; init; } = HotkeyBinding.None;
+
     public static string NormalizeName(string? name)
     {
         var trimmed = name?.Trim() ?? string.Empty;
@@ -78,6 +82,8 @@ public sealed record AppConfig
 
     public HotkeyBinding PreviousPresetHotkey { get; init; } = HotkeyBinding.None;
 
+    public bool PositionHotkeysEnabled { get; init; }
+
     public bool ShowOnlyOverGame { get; init; }
 
     public IReadOnlyList<string> GameWindowTitles { get; init; } = ["Fortnite"];
@@ -96,10 +102,18 @@ public sealed record AppConfig
 
     public AppConfig Normalize()
     {
-        var presets = (Presets ?? [])
-            .Where(preset => preset is not null)
-            .Select(preset => new Preset(Preset.NormalizeName(preset.Name), (preset.Settings ?? new CrosshairSettings()).Clamp()))
-            .ToList();
+        var presets = new List<Preset>();
+        var usedIds = new HashSet<Guid>();
+        foreach (var preset in (Presets ?? []).Where(preset => preset is not null))
+        {
+            var id = preset.Id == Guid.Empty || usedIds.Contains(preset.Id) ? Guid.NewGuid() : preset.Id;
+            usedIds.Add(id);
+            presets.Add(new Preset(Preset.NormalizeName(preset.Name), (preset.Settings ?? new CrosshairSettings()).Clamp())
+            {
+                Id = id,
+                Hotkey = (preset.Hotkey ?? HotkeyBinding.None).Normalize(),
+            });
+        }
 
         if (presets.Count == 0)
         {

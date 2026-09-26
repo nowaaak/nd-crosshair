@@ -9,8 +9,26 @@ namespace NdCrosshair.App;
 
 internal sealed class AppController : IDisposable
 {
+    private const int PresetHotkeyIdBase = 100;
+    private const int PositionModifiers = HotkeyBinding.ModifierAlt | HotkeyBinding.ModifierShift;
+    private const int VirtualKeyHome = 0x24;
+    private const int VirtualKeyLeft = 0x25;
+    private const int VirtualKeyUp = 0x26;
+    private const int VirtualKeyRight = 0x27;
+    private const int VirtualKeyDown = 0x28;
+
     private static readonly TimeSpan SaveDelay = TimeSpan.FromMilliseconds(500);
+    private static readonly TimeSpan PresetToastDuration = TimeSpan.FromSeconds(1.5);
     private static readonly TimeSpan UnreadableToastDuration = TimeSpan.FromSeconds(12);
+
+    private static readonly (HotkeyAction Action, int VirtualKey)[] PositionHotkeys =
+    [
+        (HotkeyAction.MoveUp, VirtualKeyUp),
+        (HotkeyAction.MoveDown, VirtualKeyDown),
+        (HotkeyAction.MoveLeft, VirtualKeyLeft),
+        (HotkeyAction.MoveRight, VirtualKeyRight),
+        (HotkeyAction.ResetPosition, VirtualKeyHome),
+    ];
 
     private readonly ConfigStore store;
     private readonly MainViewModel viewModel;
@@ -151,7 +169,7 @@ internal sealed class AppController : IDisposable
             toasts.MonitorDeviceName = viewModel.MonitorDeviceName;
         }
 
-        if (kind.HasFlag(ChangeKind.Hotkey))
+        if ((kind & (ChangeKind.Hotkey | ChangeKind.Language)) != 0)
         {
             ApplyHotkeys();
         }
@@ -170,36 +188,105 @@ internal sealed class AppController : IDisposable
         saveTimer.Start();
     }
 
-    private void OnHotkeyPressed(object? sender, HotkeyAction action)
+    private void OnHotkeyPressed(object? sender, int id)
     {
-        switch (action)
+        if (id >= PresetHotkeyIdBase)
+        {
+            ActivatePreset(id - PresetHotkeyIdBase);
+            return;
+        }
+
+        switch ((HotkeyAction)id)
         {
             case HotkeyAction.ToggleOverlay:
                 viewModel.OverlayVisible = !viewModel.OverlayVisible;
                 break;
             case HotkeyAction.NextPreset:
-            case HotkeyAction.PreviousPreset:
-                viewModel.SelectRelativePreset(action == HotkeyAction.NextPreset ? 1 : -1);
-                if (viewModel.ShowPresetNotifications)
-                {
-                    toasts.Show(Loc.Format("ToastPresetActive", viewModel.SelectedPreset.Name), TimeSpan.FromSeconds(1.5));
-                }
-
+                viewModel.SelectRelativePreset(1);
+                ShowPresetToast();
                 break;
+            case HotkeyAction.PreviousPreset:
+                viewModel.SelectRelativePreset(-1);
+                ShowPresetToast();
+                break;
+            case HotkeyAction.MoveUp:
+                viewModel.OffsetY--;
+                break;
+            case HotkeyAction.MoveDown:
+                viewModel.OffsetY++;
+                break;
+            case HotkeyAction.MoveLeft:
+                viewModel.OffsetX--;
+                break;
+            case HotkeyAction.MoveRight:
+                viewModel.OffsetX++;
+                break;
+            case HotkeyAction.ResetPosition:
+                viewModel.ResetOffset();
+                break;
+        }
+    }
+
+    private void ActivatePreset(int index)
+    {
+        if (index < 0 || index >= viewModel.Presets.Count || index == viewModel.SelectedPresetIndex)
+        {
+            return;
+        }
+
+        viewModel.SelectPreset(index);
+        ShowPresetToast();
+    }
+
+    private void ShowPresetToast()
+    {
+        if (viewModel.ShowPresetNotifications)
+        {
+            toasts.Show(Loc.Format("ToastPresetActive", viewModel.SelectedPreset.Name), PresetToastDuration);
         }
     }
 
     private void ApplyHotkeys()
     {
+        hotkeys.UnregisterAll();
         if (viewModel.IsCapturingHotkey)
         {
-            hotkeys.UnregisterAll();
             return;
         }
 
-        viewModel.SetHotkeyStatus(HotkeyAction.ToggleOverlay, hotkeys.Register(HotkeyAction.ToggleOverlay, viewModel.ToggleHotkey));
-        viewModel.SetHotkeyStatus(HotkeyAction.NextPreset, hotkeys.Register(HotkeyAction.NextPreset, viewModel.NextPresetHotkey));
-        viewModel.SetHotkeyStatus(HotkeyAction.PreviousPreset, hotkeys.Register(HotkeyAction.PreviousPreset, viewModel.PreviousPresetHotkey));
+        var entries = new List<(int Id, HotkeyBinding Binding, bool Repeat, Action<string> Report)>
+        {
+            ((int)HotkeyAction.ToggleOverlay, viewModel.ToggleHotkey, false, status => viewModel.ToggleHotkeyStatus = status),
+            ((int)HotkeyAction.NextPreset, viewModel.NextPresetHotkey, false, status => viewModel.NextHotkeyStatus = status),
+            ((int)HotkeyAction.PreviousPreset, viewModel.PreviousPresetHotkey, false, status => viewModel.PreviousHotkeyStatus = status),
+        };
+
+        var positionStatuses = new List<string>();
+        if (viewModel.PositionHotkeysEnabled)
+        {
+            foreach (var (action, virtualKey) in PositionHotkeys)
+            {
+                var binding = new HotkeyBinding(PositionModifiers, virtualKey);
+                entries.Add(((int)action, binding, action != HotkeyAction.ResetPosition, positionStatuses.Add));
+            }
+        }
+
+        for (var i = 0; i < viewModel.Presets.Count; i++)
+        {
+            var preset = viewModel.Presets[i];
+            entries.Add((PresetHotkeyIdBase + i, preset.Hotkey, false, status => preset.HotkeyStatus = status));
+        }
+
+        var duplicates = HotkeyConflicts.FindDuplicates(entries.Select(entry => entry.Binding).ToList());
+        for (var i = 0; i < entries.Count; i++)
+        {
+            var (id, binding, repeat, report) = entries[i];
+            report(duplicates.Contains(i)
+                ? Loc.T("HotkeyDuplicate")
+                : hotkeys.Register(id, binding, repeat) ? string.Empty : Loc.T("HotkeyTaken"));
+        }
+
+        viewModel.PositionHotkeysStatus = positionStatuses.FirstOrDefault(status => status.Length > 0) ?? string.Empty;
     }
 
     private void ApplyAutostart()

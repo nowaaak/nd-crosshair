@@ -109,11 +109,16 @@ public sealed class ConfigStoreTests : IDisposable
     public void ExportAndImport_RoundTripsSystemSettings()
     {
         var path = Path.Combine(directory, "backup.json");
+        var preset = new Preset("Rainbow", new CrosshairSettings { ColorMode = CrosshairColorMode.Rainbow, RainbowSpeed = 9 })
+        {
+            Hotkey = new HotkeyBinding(HotkeyBinding.ModifierControl, 0x31),
+        };
         var config = new AppConfig
         {
-            Presets = [new Preset("Rainbow", new CrosshairSettings { ColorMode = CrosshairColorMode.Rainbow, RainbowSpeed = 9 })],
+            Presets = [preset],
             ShowOnlyOverGame = true,
             GameWindowTitles = ["Fortnite", "VALORANT"],
+            PositionHotkeysEnabled = true,
             StreamerMode = true,
             StartMinimized = false,
             MinimizeToTray = false,

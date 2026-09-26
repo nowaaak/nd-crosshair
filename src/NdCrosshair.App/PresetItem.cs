@@ -9,15 +9,21 @@ internal sealed class PresetItem : INotifyPropertyChanged
 {
     private string name;
     private CrosshairSettings settings;
+    private HotkeyBinding hotkey;
+    private string hotkeyStatus = string.Empty;
     private ImageSource? thumbnail;
 
-    public PresetItem(string name, CrosshairSettings settings)
+    public PresetItem(string name, CrosshairSettings settings, Guid? id = null, HotkeyBinding? hotkey = null)
     {
         this.name = name;
         this.settings = settings;
+        this.hotkey = hotkey ?? HotkeyBinding.None;
+        Id = id ?? Guid.NewGuid();
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    public Guid Id { get; }
 
     public string Name
     {
@@ -52,9 +58,40 @@ internal sealed class PresetItem : INotifyPropertyChanged
         }
     }
 
+    public HotkeyBinding Hotkey
+    {
+        get => hotkey;
+        set
+        {
+            var normalized = (value ?? HotkeyBinding.None).Normalize();
+            if (normalized == hotkey)
+            {
+                return;
+            }
+
+            hotkey = normalized;
+            OnPropertyChanged();
+        }
+    }
+
+    public string HotkeyStatus
+    {
+        get => hotkeyStatus;
+        set
+        {
+            if (value == hotkeyStatus)
+            {
+                return;
+            }
+
+            hotkeyStatus = value;
+            OnPropertyChanged();
+        }
+    }
+
     public ImageSource Thumbnail => thumbnail ??= CrosshairBitmaps.ToBitmapSource(CrosshairRenderer.Render(settings));
 
-    public Preset ToPreset() => new(Preset.NormalizeName(Name), Settings);
+    public Preset ToPreset() => new(Preset.NormalizeName(Name), Settings) { Id = Id, Hotkey = Hotkey };
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

@@ -342,7 +342,7 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
         Presets.Remove(removed);
         OnPropertyChanged(nameof(CanDeletePreset));
         OnPropertyChanged(nameof(SelectedPresetIndex));
-        Changed?.Invoke(this, ChangeKind.Presets);
+        Changed?.Invoke(this, ChangeKind.Presets | ChangeKind.Hotkey);
     }
 
     public void SelectPreset(int index)
@@ -431,6 +431,7 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
         Hotkey = toggleHotkey,
         NextPresetHotkey = nextPresetHotkey,
         PreviousPresetHotkey = previousPresetHotkey,
+        PositionHotkeysEnabled = positionHotkeysEnabled,
         ShowOnlyOverGame = showOnlyOverGame,
         GameWindowTitles = GameWindowTitles.ToList(),
         StreamerMode = streamerMode,
@@ -461,7 +462,7 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
         Presets.Clear();
         foreach (var preset in config.Presets)
         {
-            AddPresetItem(new PresetItem(preset.Name, preset.Settings));
+            AddPresetItem(new PresetItem(preset.Name, preset.Settings, preset.Id, preset.Hotkey));
         }
 
         selectedPreset = Presets[config.ActivePresetIndex];
@@ -472,6 +473,7 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
         toggleHotkey = config.Hotkey;
         nextPresetHotkey = config.NextPresetHotkey;
         previousPresetHotkey = config.PreviousPresetHotkey;
+        positionHotkeysEnabled = config.PositionHotkeysEnabled;
         showOnlyOverGame = config.ShowOnlyOverGame;
         GameWindowTitles.Clear();
         foreach (var title in config.GameWindowTitles)
@@ -505,6 +507,10 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
         if (e.PropertyName == nameof(PresetItem.Name))
         {
             Changed?.Invoke(this, ChangeKind.Presets);
+        }
+        else if (e.PropertyName == nameof(PresetItem.Hotkey))
+        {
+            Changed?.Invoke(this, ChangeKind.Hotkey);
         }
     }
 

@@ -23,10 +23,19 @@
                     <controls:HotkeyBox Label="{l:T HotkeyPreviousHeader}" Hotkey="{Binding PreviousPresetHotkey}"
                                         Status="{Binding PreviousHotkeyStatus}" IsCapturing="{Binding IsCapturingHotkey}" />
                 </controls:SettingCard>
+                <controls:SettingCard Glyph="&#xE759;" Header="{l:T PositionHotkeysHeader}" Description="{l:T PositionHotkeysDescription}">
+                    <CheckBox Style="{StaticResource SwitchCheckBox}" Margin="0" IsChecked="{Binding PositionHotkeysEnabled}"
+                              AutomationProperties.Name="{l:T PositionHotkeysHeader}" />
+                    <controls:SettingCard.Body>
+                        <TextBlock Text="{Binding PositionHotkeysStatus}" Style="{StaticResource WarningText}" FontSize="12" TextWrapping="Wrap"
+                                   Visibility="{Binding PositionHotkeysStatus, Converter={StaticResource Visible}}" />
+                    </controls:SettingCard.Body>
+                </controls:SettingCard>
                 <controls:SettingCard Glyph="&#xEA8F;" Header="{l:T PresetNotificationHeader}" Description="{l:T PresetNotificationDescription}">
                     <CheckBox Style="{StaticResource SwitchCheckBox}" Margin="0" IsChecked="{Binding ShowPresetNotifications}"
                               AutomationProperties.Name="{l:T PresetNotificationHeader}" />
                 </controls:SettingCard>
+                <TextBlock Text="{l:T HotkeysPresetNote}" Style="{StaticResource SecondaryText}" FontSize="12" TextWrapping="Wrap" Margin="2,8,0,0" />
                 <TextBlock Text="{l:T HotkeysNote}" Style="{StaticResource SecondaryText}" FontSize="12" TextWrapping="Wrap" Margin="2,8,0,0" />
             </StackPanel>
         </ScrollViewer>

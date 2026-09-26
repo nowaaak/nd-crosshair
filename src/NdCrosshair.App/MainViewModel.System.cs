@@ -22,6 +22,8 @@ internal sealed partial class MainViewModel
     private string toggleHotkeyStatus = string.Empty;
     private string nextHotkeyStatus = string.Empty;
     private string previousHotkeyStatus = string.Empty;
+    private bool positionHotkeysEnabled;
+    private string positionHotkeysStatus = string.Empty;
     private bool showOnlyOverGame;
     private string newGameTitle = string.Empty;
     private string captureStatus = string.Empty;
@@ -38,6 +40,24 @@ internal sealed partial class MainViewModel
     public ObservableCollection<MonitorOption> Monitors { get; } = [];
 
     public ObservableCollection<string> GameWindowTitles { get; } = [];
+
+    public bool PositionHotkeysEnabled
+    {
+        get => positionHotkeysEnabled;
+        set
+        {
+            if (SetField(ref positionHotkeysEnabled, value))
+            {
+                Changed?.Invoke(this, ChangeKind.Hotkey);
+            }
+        }
+    }
+
+    public string PositionHotkeysStatus
+    {
+        get => positionHotkeysStatus;
+        set => SetField(ref positionHotkeysStatus, value);
+    }
 
     public MonitorOption? SelectedMonitor
     {
@@ -270,23 +290,6 @@ internal sealed partial class MainViewModel
         CaptureStatus = Loc.Format("CaptureCountdown", captureRemaining);
         captureTimer = new DispatcherTimer(TimeSpan.FromSeconds(1), DispatcherPriority.Normal, OnCaptureTick, Dispatcher.CurrentDispatcher);
         OnPropertyChanged(nameof(IsCapturingWindow));
-    }
-
-    public void SetHotkeyStatus(HotkeyAction action, bool registered)
-    {
-        var status = registered ? string.Empty : Loc.T("HotkeyTaken");
-        switch (action)
-        {
-            case HotkeyAction.ToggleOverlay:
-                ToggleHotkeyStatus = status;
-                break;
-            case HotkeyAction.NextPreset:
-                NextHotkeyStatus = status;
-                break;
-            case HotkeyAction.PreviousPreset:
-                PreviousHotkeyStatus = status;
-                break;
-        }
     }
 
     public OverlayOptions ToOverlayOptions() => new(
