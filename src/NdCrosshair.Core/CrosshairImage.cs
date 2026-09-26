@@ -23,4 +23,6 @@ public sealed class CrosshairImage
         var index = (y * Size + x) * BytesPerPixel;
         return (Pixels[index], Pixels[index + 1], Pixels[index + 2], Pixels[index + 3]);
     }
+
+    internal static byte ToByte(double value) => (byte)Math.Clamp(Math.Round(value * 255), 0, 255);
 }

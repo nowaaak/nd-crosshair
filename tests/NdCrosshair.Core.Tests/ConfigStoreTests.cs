@@ -36,8 +36,8 @@ public sealed class ConfigStoreTests : IDisposable
         {
             Presets =
             [
-                new Preset("Fortnite", new CrosshairSettings { Color = new CrosshairColor(0, 255, 255), Gap = 2 }),
-                new Preset("Ärger ß", new CrosshairSettings { ShowDot = true, ShowOutline = false }),
+                Preset.Classic("Fortnite", new CrosshairSettings { Color = new CrosshairColor(0, 255, 255), Gap = 2 }),
+                Preset.Classic("Ärger ß", new CrosshairSettings { ShowDot = true, ShowOutline = false }),
             ],
             ActivePresetIndex = 1,
             MonitorDeviceName = @"\\.\DISPLAY2",
@@ -99,8 +99,8 @@ public sealed class ConfigStoreTests : IDisposable
         var config = new ConfigStore(FilePath).Load().Config;
 
         Assert.Equal(Preset.FallbackName, config.Presets[0].Name);
-        Assert.Equal(CrosshairSettings.MaxLineThickness, config.Presets[0].Settings.LineThickness);
-        Assert.Equal(CrosshairSettings.MinOpacity, config.Presets[0].Settings.Opacity);
+        Assert.Equal(CrosshairSettings.MaxLineThickness, config.Presets[0].Design.ClassicSettings()!.LineThickness);
+        Assert.Equal(CrosshairSettings.MinOpacity, config.Presets[0].Design.ClassicSettings()!.Opacity);
         Assert.Equal(0, config.ActivePresetIndex);
         Assert.Equal(AppConfig.MaxOffset, config.OffsetX);
         Assert.True(config.Hotkey.IsNone);
@@ -110,7 +110,7 @@ public sealed class ConfigStoreTests : IDisposable
     public void ExportAndImport_RoundTripsSystemSettings()
     {
         var path = Path.Combine(directory, "backup.json");
-        var preset = new Preset("Rainbow", new CrosshairSettings { ColorMode = CrosshairColorMode.Rainbow, RainbowSpeed = 9 })
+        var preset = Preset.Classic("Rainbow", new CrosshairSettings { ColorMode = CrosshairColorMode.Rainbow, RainbowSpeed = 9 }) with
         {
             Hotkey = new HotkeyBinding(HotkeyBinding.ModifierControl, 0x31),
         };
@@ -206,9 +206,9 @@ public sealed class ConfigStoreTests : IDisposable
         {
             Presets =
             [
-                new Preset("A", new CrosshairSettings()) { Id = shared },
-                new Preset("B", new CrosshairSettings()) { Id = shared },
-                new Preset("C", new CrosshairSettings()) { Id = Guid.Empty },
+                Preset.Classic("A", new CrosshairSettings()) with { Id = shared },
+                Preset.Classic("B", new CrosshairSettings()) with { Id = shared },
+                Preset.Classic("C", new CrosshairSettings()) with { Id = Guid.Empty },
             ],
             GameRules =
             [
@@ -258,8 +258,8 @@ public sealed class ConfigStoreTests : IDisposable
         var result = new ConfigStore(FilePath).Load();
 
         Assert.Equal(ConfigLoadStatus.Loaded, result.Status);
-        Assert.Equal(CrosshairColorMode.Static, result.Config.Presets[0].Settings.ColorMode);
-        Assert.Equal(7, result.Config.Presets[0].Settings.Gap);
+        Assert.Equal(CrosshairColorMode.Static, result.Config.Presets[0].Design.ClassicSettings()!.ColorMode);
+        Assert.Equal(7, result.Config.Presets[0].Design.ClassicSettings()!.Gap);
     }
 
     [Fact]
@@ -269,6 +269,28 @@ public sealed class ConfigStoreTests : IDisposable
         File.WriteAllText(FilePath, """{ "presets": [ { "name": "x", "settings": { "colorMode": { } } } ] }""");
 
         Assert.Equal(ConfigLoadStatus.RecoveredFromCorruptFile, new ConfigStore(FilePath).Load().Status);
+    }
+
+    [Fact]
+    public void Load_MigratesClassicSettingsToSingleLayerDesign()
+    {
+        Directory.CreateDirectory(directory);
+        File.WriteAllText(FilePath, """{ "presets": [ { "name": "Alt", "settings": { "gap": 9, "showDot": true } } ] }""");
+
+        var store = new ConfigStore(FilePath);
+        var preset = Assert.Single(store.Load().Config.Presets);
+
+        var layer = Assert.IsType<ClassicLayer>(Assert.Single(preset.Design.Layers));
+        Assert.Equal(9, layer.Settings.Gap);
+        Assert.True(layer.Settings.ShowDot);
+        Assert.Null(preset.Settings);
+
+        store.Save(store.Load().Config);
+        var json = File.ReadAllText(FilePath);
+        Assert.Contains("\"design\"", json, StringComparison.Ordinal);
+        Assert.Contains("\"type\": \"classic\"", json, StringComparison.Ordinal);
+        Assert.DoesNotContain("\"settings\": {\n        \"showTop\"", json.Replace("\r", string.Empty), StringComparison.Ordinal);
+        Assert.Equal(preset.Design, store.Load().Config.Presets[0].Design);
     }
 
     [Fact]

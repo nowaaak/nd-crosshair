@@ -8,15 +8,15 @@ namespace NdCrosshair.App;
 internal sealed class PresetItem : INotifyPropertyChanged
 {
     private string name;
-    private CrosshairSettings settings;
+    private CrosshairDesign design;
     private HotkeyBinding hotkey;
     private string hotkeyStatus = string.Empty;
     private ImageSource? thumbnail;
 
-    public PresetItem(string name, CrosshairSettings settings, Guid? id = null, HotkeyBinding? hotkey = null)
+    public PresetItem(string name, CrosshairDesign design, Guid? id = null, HotkeyBinding? hotkey = null)
     {
         this.name = name;
-        this.settings = settings;
+        this.design = design;
         this.hotkey = hotkey ?? HotkeyBinding.None;
         Id = id ?? Guid.NewGuid();
     }
@@ -41,17 +41,17 @@ internal sealed class PresetItem : INotifyPropertyChanged
         }
     }
 
-    public CrosshairSettings Settings
+    public CrosshairDesign Design
     {
-        get => settings;
+        get => design;
         set
         {
-            if (value == settings)
+            if (value == design)
             {
                 return;
             }
 
-            settings = value;
+            design = value;
             thumbnail = null;
             OnPropertyChanged();
             OnPropertyChanged(nameof(Thumbnail));
@@ -89,9 +89,9 @@ internal sealed class PresetItem : INotifyPropertyChanged
         }
     }
 
-    public ImageSource Thumbnail => thumbnail ??= CrosshairBitmaps.ToBitmapSource(CrosshairRenderer.Render(settings));
+    public ImageSource Thumbnail => thumbnail ??= CrosshairBitmaps.ToBitmapSource(DesignRenderer.Render(design));
 
-    public Preset ToPreset() => new(Preset.NormalizeName(Name), Settings) { Id = Id, Hotkey = Hotkey };
+    public Preset ToPreset() => new(Preset.NormalizeName(Name), Design) { Id = Id, Hotkey = Hotkey };
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

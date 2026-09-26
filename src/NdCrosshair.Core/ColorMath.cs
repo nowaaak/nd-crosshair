@@ -2,6 +2,12 @@ namespace NdCrosshair.Core;
 
 public static class ColorMath
 {
+    public static CrosshairColor Rainbow(CrosshairColor baseColor, int speed, double seconds)
+    {
+        var secondsPerCycle = CrosshairSettings.MaxRainbowSpeed + 1 - Math.Clamp(speed, CrosshairSettings.MinRainbowSpeed, CrosshairSettings.MaxRainbowSpeed);
+        return FromHsv(ToHsv(baseColor).Hue + seconds / secondsPerCycle * 360, 1, 1);
+    }
+
     public static CrosshairColor FromHsv(double hue, double saturation, double value)
     {
         hue = ((hue % 360) + 360) % 360;

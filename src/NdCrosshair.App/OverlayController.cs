@@ -6,7 +6,7 @@ using NdCrosshair.Core;
 namespace NdCrosshair.App;
 
 internal sealed record OverlayOptions(
-    CrosshairSettings Settings,
+    CrosshairDesign Design,
     string? MonitorDeviceName,
     int OffsetX,
     int OffsetY,
@@ -30,9 +30,8 @@ internal sealed class OverlayController : IDisposable
     private readonly Stopwatch clock = Stopwatch.StartNew();
 
     private OverlayOptions? options;
-    private CrosshairSettings? rasterizedSettings;
-    private CrosshairLayers? layers;
-    private CrosshairColor? currentFill;
+    private CrosshairDesign? rasterizedDesign;
+    private RasterizedDesign? rasterized;
     private bool gameInForeground = true;
     private GameRule? detectedRule;
     private bool aimHidden;
@@ -61,13 +60,11 @@ internal sealed class OverlayController : IDisposable
     {
         var previous = options;
         options = next;
-        var settings = next.Settings.Clamp();
-
-        if (layers is null || rasterizedSettings != settings)
+        var design = next.Design.Normalize();
+        if (rasterized is null || rasterizedDesign != design)
         {
-            layers = CrosshairRenderer.Rasterize(settings);
-            rasterizedSettings = settings;
-            currentFill = null;
+            rasterized = DesignRenderer.Rasterize(design);
+            rasterizedDesign = design;
         }
 
         if (previous is null
@@ -102,7 +99,7 @@ internal sealed class OverlayController : IDisposable
             gameInForeground = ForegroundWindow.IsGameOrSettings(ForegroundWindow.Get(), next.GameRules);
         }
 
-        UpdateFill(force: true);
+        Redraw();
         UpdateVisibility();
     }
 
@@ -131,43 +128,20 @@ internal sealed class OverlayController : IDisposable
         var shown = active && !aimHidden;
         window.SetVisible(shown);
 
-        var mode = rasterizedSettings?.ColorMode ?? CrosshairColorMode.Static;
-        SetTimer(rainbowTimer, shown && mode == CrosshairColorMode.Rainbow);
+        SetTimer(rainbowTimer, shown && rasterized?.IsAnimated == true);
         SetTimer(aimTimer, aimWatched);
         SetTimer(foregroundTimer, (options.Visible && options.ShowOnlyOverGame) || options.GameRules.Any(rule => rule.PresetId is not null));
     }
 
-    private void UpdateFill(bool force)
+    private void Redraw()
     {
-        if (layers is null || rasterizedSettings is null)
+        if (rasterized is not null)
         {
-            return;
+            window.SetImage(rasterized.Compose(rasterized.IsAnimated ? clock.Elapsed : null));
         }
-
-        var fill = rasterizedSettings.ColorMode switch
-        {
-            CrosshairColorMode.Rainbow => RainbowColor(rasterizedSettings),
-            _ => rasterizedSettings.Color,
-        };
-
-        if (!force && fill == currentFill)
-        {
-            return;
-        }
-
-        currentFill = fill;
-        window.SetImage(layers.Compose(fill));
     }
 
-    private CrosshairColor RainbowColor(CrosshairSettings settings)
-    {
-        var secondsPerCycle = CrosshairSettings.MaxRainbowSpeed + 1 - settings.RainbowSpeed;
-        var baseHue = ColorMath.ToHsv(settings.Color).Hue;
-        var hue = baseHue + clock.Elapsed.TotalSeconds / secondsPerCycle * 360;
-        return ColorMath.FromHsv(hue, 1, 1);
-    }
-
-    private void OnRainbowTick() => UpdateFill(force: false);
+    private void OnRainbowTick() => Redraw();
 
     private void OnForegroundTick()
     {

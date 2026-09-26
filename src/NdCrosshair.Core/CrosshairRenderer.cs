@@ -1,13 +1,7 @@
-using System.Numerics;
-
 namespace NdCrosshair.Core;
 
 public static class CrosshairRenderer
 {
-    private const int SamplesPerAxis = 4;
-    private const double SampleCount = SamplesPerAxis * SamplesPerAxis;
-    private const double BoundsEpsilon = 1e-9;
-
     public static CrosshairImage Render(CrosshairSettings settings)
     {
         ArgumentNullException.ThrowIfNull(settings);
@@ -17,8 +11,11 @@ public static class CrosshairRenderer
     public static CrosshairLayers Rasterize(CrosshairSettings settings)
     {
         ArgumentNullException.ThrowIfNull(settings);
+        return new CrosshairLayers(RasterizeClassic(settings.Clamp()));
+    }
 
-        var s = settings.Clamp();
+    internal static LayerRaster RasterizeClassic(CrosshairSettings s)
+    {
         var outline = s.ShowOutline ? s.OutlineThickness : 0;
         var fills = BuildShapes(s, 0);
         var outlines = outline > 0 ? BuildShapes(s, outline) : [];
@@ -27,33 +24,36 @@ public static class CrosshairRenderer
 
         var origin = outer.Count == 0 ? 0 : outer.Max(shape => shape.Bounds.MaxExtent) + shadow;
         var size = origin * 2 + 1;
-        var pixelCount = size * size;
 
-        var fillCoverage = Rasterize(fills, size, origin);
-        var outlineCoverage = outline > 0 ? Rasterize(outlines, size, origin) : new double[pixelCount];
-        var opacity = Math.Round(s.Opacity * 255 / 100.0) / 255.0;
+        return LayerRaster.FromCoverage(
+            size,
+            SuperSampler.Rasterize(fills, size, origin),
+            outline > 0 ? SuperSampler.Rasterize(outlines, size, origin) : null,
+            s.Opacity,
+            s.OutlineColor,
+            shadow,
+            s.ShadowOpacity,
+            s.ShadowColor);
+    }
 
-        var visibleOutline = new double[pixelCount];
-        var alpha = new double[pixelCount];
-        for (var i = 0; i < pixelCount; i++)
+    internal static CrosshairSettings Transform(CrosshairSettings s, int scalePercent, int spread)
+    {
+        if (scalePercent != 100)
         {
-            visibleOutline[i] = outlineCoverage[i] * (1 - fillCoverage[i]);
-            alpha[i] = (fillCoverage[i] + visibleOutline[i]) * opacity;
-        }
-
-        double[]? shadowAlpha = null;
-        if (shadow > 0)
-        {
-            var blurred = Blur(alpha, size, shadow);
-            var shadowOpacity = s.ShadowOpacity / 100.0;
-            shadowAlpha = new double[pixelCount];
-            for (var i = 0; i < pixelCount; i++)
+            var factor = scalePercent / 100.0;
+            int Scaled(int value, int minimum) => Math.Max(minimum, (int)Math.Round(value * factor, MidpointRounding.AwayFromZero));
+            s = s with
             {
-                shadowAlpha[i] = blurred[i] * shadowOpacity * (1 - alpha[i]);
-            }
+                LineLength = Scaled(s.LineLength, 0),
+                LineThickness = Scaled(s.LineThickness, 1),
+                Gap = Scaled(s.Gap, 0),
+                DotSize = Scaled(s.DotSize, 1),
+                RingRadius = Scaled(s.RingRadius, 1),
+                RingThickness = Scaled(s.RingThickness, 1),
+            };
         }
 
-        return new CrosshairLayers(size, fillCoverage, visibleOutline, shadowAlpha, s.OutlineColor, s.ShadowColor, opacity);
+        return spread == 0 ? s : s with { Gap = s.Gap + spread, RingRadius = s.RingRadius + spread };
     }
 
     private static List<Shape> BuildShapes(CrosshairSettings s, int grow)
@@ -105,186 +105,5 @@ public static class CrosshairRenderer
         }
 
         return shapes;
-    }
-
-    private static double[] Rasterize(List<Shape> shapes, int size, int origin)
-    {
-        var masks = new ushort[size * size];
-        foreach (var shape in shapes)
-        {
-            var bounds = shape.Bounds;
-            for (var py = bounds.MinY; py <= bounds.MaxY; py++)
-            {
-                var row = (py + origin) * size + origin;
-                for (var px = bounds.MinX; px <= bounds.MaxX; px++)
-                {
-                    var mask = 0;
-                    for (var sy = 0; sy < SamplesPerAxis; sy++)
-                    {
-                        var y = py + (sy + 0.5) / SamplesPerAxis;
-                        for (var sx = 0; sx < SamplesPerAxis; sx++)
-                        {
-                            if (shape.Contains(px + (sx + 0.5) / SamplesPerAxis, y))
-                            {
-                                mask |= 1 << (sy * SamplesPerAxis + sx);
-                            }
-                        }
-                    }
-
-                    masks[row + px] |= (ushort)mask;
-                }
-            }
-        }
-
-        var coverage = new double[masks.Length];
-        for (var i = 0; i < masks.Length; i++)
-        {
-            coverage[i] = BitOperations.PopCount(masks[i]) / SampleCount;
-        }
-
-        return coverage;
-    }
-
-    private static double[] Blur(double[] source, int size, int radius)
-    {
-        var sigma = Math.Max(0.5, radius / 2.0);
-        var kernel = new double[radius * 2 + 1];
-        var sum = 0.0;
-        for (var k = -radius; k <= radius; k++)
-        {
-            kernel[k + radius] = Math.Exp(-(k * k) / (2 * sigma * sigma));
-            sum += kernel[k + radius];
-        }
-
-        for (var k = 0; k < kernel.Length; k++)
-        {
-            kernel[k] /= sum;
-        }
-
-        var horizontal = new double[source.Length];
-        for (var y = 0; y < size; y++)
-        {
-            for (var x = 0; x < size; x++)
-            {
-                var value = 0.0;
-                for (var k = -radius; k <= radius; k++)
-                {
-                    var xx = x + k;
-                    if (xx >= 0 && xx < size)
-                    {
-                        value += source[y * size + xx] * kernel[k + radius];
-                    }
-                }
-
-                horizontal[y * size + x] = value;
-            }
-        }
-
-        var result = new double[source.Length];
-        for (var y = 0; y < size; y++)
-        {
-            for (var x = 0; x < size; x++)
-            {
-                var value = 0.0;
-                for (var k = -radius; k <= radius; k++)
-                {
-                    var yy = y + k;
-                    if (yy >= 0 && yy < size)
-                    {
-                        value += horizontal[yy * size + x] * kernel[k + radius];
-                    }
-                }
-
-                result[y * size + x] = value;
-            }
-        }
-
-        return result;
-    }
-
-    private readonly record struct PixelBounds(int MinX, int MinY, int MaxX, int MaxY)
-    {
-        public int MaxExtent => Math.Max(Math.Max(-MinX, -MinY), Math.Max(MaxX, MaxY));
-
-        public static PixelBounds FromEdges(double minX, double minY, double maxX, double maxY) => new(
-            (int)Math.Floor(minX + BoundsEpsilon),
-            (int)Math.Floor(minY + BoundsEpsilon),
-            (int)Math.Ceiling(maxX - BoundsEpsilon) - 1,
-            (int)Math.Ceiling(maxY - BoundsEpsilon) - 1);
-    }
-
-    private abstract class Shape
-    {
-        public abstract PixelBounds Bounds { get; }
-
-        public abstract bool Contains(double x, double y);
-    }
-
-    private sealed class RectShape : Shape
-    {
-        private readonly double left;
-        private readonly double top;
-        private readonly double right;
-        private readonly double bottom;
-        private readonly double pivot;
-        private readonly double cos;
-        private readonly double sin;
-
-        public RectShape(double left, double top, double right, double bottom, int rotationDegrees, double pivot)
-        {
-            this.left = left;
-            this.top = top;
-            this.right = right;
-            this.bottom = bottom;
-            this.pivot = pivot;
-
-            var radians = rotationDegrees * Math.PI / 180;
-            cos = rotationDegrees == 0 ? 1 : Math.Cos(radians);
-            sin = rotationDegrees == 0 ? 0 : Math.Sin(radians);
-
-            double[] xs = [RotateX(left, top), RotateX(right, top), RotateX(left, bottom), RotateX(right, bottom)];
-            double[] ys = [RotateY(left, top), RotateY(right, top), RotateY(left, bottom), RotateY(right, bottom)];
-            Bounds = PixelBounds.FromEdges(xs.Min(), ys.Min(), xs.Max(), ys.Max());
-        }
-
-        public override PixelBounds Bounds { get; }
-
-        public override bool Contains(double x, double y)
-        {
-            var dx = x - pivot;
-            var dy = y - pivot;
-            var localX = dx * cos + dy * sin + pivot;
-            var localY = -dx * sin + dy * cos + pivot;
-            return localX >= left && localX < right && localY >= top && localY < bottom;
-        }
-
-        private double RotateX(double x, double y) => (x - pivot) * cos - (y - pivot) * sin + pivot;
-
-        private double RotateY(double x, double y) => (x - pivot) * sin + (y - pivot) * cos + pivot;
-    }
-
-    private sealed class RingShape : Shape
-    {
-        private readonly double center;
-        private readonly double innerSquared;
-        private readonly double outerSquared;
-
-        public RingShape(double center, double innerRadius, double outerRadius)
-        {
-            this.center = center;
-            innerSquared = innerRadius > 0 ? innerRadius * innerRadius : -1;
-            outerSquared = outerRadius * outerRadius;
-            Bounds = PixelBounds.FromEdges(center - outerRadius, center - outerRadius, center + outerRadius, center + outerRadius);
-        }
-
-        public override PixelBounds Bounds { get; }
-
-        public override bool Contains(double x, double y)
-        {
-            var dx = x - center;
-            var dy = y - center;
-            var distanceSquared = dx * dx + dy * dy;
-            return distanceSquared < outerSquared && distanceSquared >= innerSquared;
-        }
     }
 }

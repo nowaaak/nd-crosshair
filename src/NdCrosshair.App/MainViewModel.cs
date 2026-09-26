@@ -143,7 +143,7 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
 
     public bool CanDeletePreset => Presets.Count > 1;
 
-    public CrosshairSettings Current => selectedPreset.Settings;
+    public CrosshairSettings Current => selectedPreset.Design.ClassicSettings() ?? new CrosshairSettings();
 
     public bool ShowTop
     {
@@ -295,7 +295,7 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
         set => EditColor(value, color => Current with { ShadowColor = color });
     }
 
-    public string ShareCodeText => ShareCode.Encode(Current);
+    public string ShareCodeText => DesignShareCode.Encode(selectedPreset.Design);
 
     public string ImportCode
     {
@@ -309,9 +309,9 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
         set => SetField(ref shareStatus, value);
     }
 
-    public void AddPreset() => InsertPreset(new PresetItem(Loc.T("NewPresetName"), new CrosshairSettings()));
+    public void AddPreset() => InsertPreset(new PresetItem(Loc.T("NewPresetName"), new CrosshairDesign()));
 
-    public void DuplicatePreset() => InsertPreset(new PresetItem(Loc.Format("CopyPresetName", selectedPreset.Name), Current));
+    public void DuplicatePreset() => InsertPreset(new PresetItem(Loc.Format("CopyPresetName", selectedPreset.Name), selectedPreset.Design));
 
     public void DeletePreset()
     {
@@ -371,7 +371,7 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
             return;
         }
 
-        if (!ShareCode.TryDecode(ImportCode, out var settings, out var error))
+        if (!DesignShareCode.TryDecode(ImportCode, out var design, out var error))
         {
             ShareStatus = error switch
             {
@@ -383,7 +383,7 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
             return;
         }
 
-        InsertPreset(new PresetItem(Loc.T("ImportedPresetName"), settings));
+        InsertPreset(new PresetItem(Loc.T("ImportedPresetName"), design));
         ImportCode = string.Empty;
         ShareStatus = Loc.T("ShareImported");
     }
@@ -403,7 +403,7 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
         }
 
         var name = result.Source == GameCodeSource.CounterStrike2 ? Loc.T("ImportedCs2PresetName") : Loc.T("ImportedValorantPresetName");
-        InsertPreset(new PresetItem(name, result.Settings));
+        InsertPreset(new PresetItem(name, CrosshairDesign.FromClassic(result.Settings)));
         ImportCode = string.Empty;
         ShareStatus = result.Notes.Count == 0
             ? Loc.T("ShareImported")
@@ -476,7 +476,7 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
         Presets.Clear();
         foreach (var preset in config.Presets)
         {
-            AddPresetItem(new PresetItem(preset.Name, preset.Settings, preset.Id, preset.Hotkey));
+            AddPresetItem(new PresetItem(preset.Name, preset.Design, preset.Id, preset.Hotkey));
         }
 
         SyncPresetChoices();
@@ -554,7 +554,11 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
             return;
         }
 
-        selectedPreset.Settings = updated;
+        var design = selectedPreset.Design;
+        var index = design.Layers.ToList().FindIndex(layer => layer is ClassicLayer);
+        selectedPreset.Design = index < 0
+            ? design
+            : design.WithLayer(index, (ClassicLayer)design.Layers[index] with { Settings = updated });
         shareStatus = string.Empty;
         RefreshCurrent();
         Changed?.Invoke(this, ChangeKind.Overlay);
@@ -568,11 +572,11 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
 
     private void RenderPreview()
     {
-        var layers = CrosshairRenderer.Rasterize(Current);
-        var image = layers.Compose(Current.Color);
+        var rasterized = DesignRenderer.Rasterize(selectedPreset.Design);
+        var image = rasterized.Compose(null);
         IsCrosshairEmpty = !image.Pixels.Where((_, index) => index % CrosshairImage.BytesPerPixel == 3).Any(alpha => alpha > 0);
         PreviewImage = CrosshairBitmaps.ToBitmapSource(image);
-        PreviewZoom = Math.Clamp((int)(PreviewTargetSize / layers.Size), 1, MaxPreviewZoom);
+        PreviewZoom = Math.Clamp((int)(PreviewTargetSize / rasterized.Size), 1, MaxPreviewZoom);
     }
 
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)

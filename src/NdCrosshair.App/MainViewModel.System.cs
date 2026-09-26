@@ -339,7 +339,7 @@ internal sealed partial class MainViewModel
     }
 
     public OverlayOptions ToOverlayOptions() => new(
-        Current,
+        selectedPreset.Design,
         monitorDeviceName,
         offsetX,
         offsetY,

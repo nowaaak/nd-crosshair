@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace NdCrosshair.Core;
 
-public sealed record Preset(string Name, CrosshairSettings Settings)
+public sealed record Preset(string Name, CrosshairDesign Design)
 {
     public const int MaxNameLength = 40;
     public const string FallbackName = "Preset";
@@ -10,6 +10,11 @@ public sealed record Preset(string Name, CrosshairSettings Settings)
     public Guid Id { get; init; } = Guid.NewGuid();
 
     public HotkeyBinding Hotkey { get; init; } = HotkeyBinding.None;
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CrosshairSettings? Settings { get; init; }
+
+    public static Preset Classic(string name, CrosshairSettings settings) => new(name, CrosshairDesign.FromClassic(settings));
 
     public static string NormalizeName(string? name)
     {
@@ -79,7 +84,7 @@ public sealed record AppConfig
     public const int MaxGameRules = 20;
     public const string DefaultGameProcess = "FortniteClient-Win64-Shipping.exe";
 
-    public IReadOnlyList<Preset> Presets { get; init; } = [new Preset("Standard", new CrosshairSettings())];
+    public IReadOnlyList<Preset> Presets { get; init; } = [new Preset("Standard", new CrosshairDesign())];
 
     public int ActivePresetIndex { get; init; }
 
@@ -132,7 +137,8 @@ public sealed record AppConfig
         {
             var id = preset.Id == Guid.Empty || usedIds.Contains(preset.Id) ? Guid.NewGuid() : preset.Id;
             usedIds.Add(id);
-            presets.Add(new Preset(Preset.NormalizeName(preset.Name), (preset.Settings ?? new CrosshairSettings()).Clamp())
+            var design = preset.Design ?? CrosshairDesign.FromClassic(preset.Settings ?? new CrosshairSettings());
+            presets.Add(new Preset(Preset.NormalizeName(preset.Name), design.Normalize())
             {
                 Id = id,
                 Hotkey = (preset.Hotkey ?? HotkeyBinding.None).Normalize(),
@@ -141,7 +147,7 @@ public sealed record AppConfig
 
         if (presets.Count == 0)
         {
-            presets.Add(new Preset("Standard", new CrosshairSettings()));
+            presets.Add(new Preset("Standard", new CrosshairDesign()));
         }
 
         return this with
