@@ -12,7 +12,7 @@ internal sealed record OverlayOptions(
     int OffsetY,
     bool Visible,
     bool ShowOnlyOverGame,
-    IReadOnlyList<string> GameWindowTitles,
+    IReadOnlyList<GameRule> GameRules,
     bool StreamerMode);
 
 internal sealed class OverlayController : IDisposable
@@ -34,6 +34,7 @@ internal sealed class OverlayController : IDisposable
     private AdaptiveColorSelector? adaptive;
     private CrosshairColor? currentFill;
     private bool gameInForeground = true;
+    private GameRule? detectedRule;
     private bool? streamerMode;
 
     public OverlayController()
@@ -51,6 +52,8 @@ internal sealed class OverlayController : IDisposable
     public event EventHandler? StreamerModeUnavailable;
 
     public event EventHandler? RenderFailed;
+
+    public event EventHandler<GameRule>? GameDetected;
 
     public void Apply(OverlayOptions next)
     {
@@ -87,9 +90,14 @@ internal sealed class OverlayController : IDisposable
             }
         }
 
+        if (previous is null || !previous.GameRules.SequenceEqual(next.GameRules))
+        {
+            detectedRule = null;
+        }
+
         if (next.ShowOnlyOverGame)
         {
-            gameInForeground = ForegroundWindow.Matches(ForegroundWindow.Get(), next.GameWindowTitles);
+            gameInForeground = ForegroundWindow.IsGameOrSettings(ForegroundWindow.Get(), next.GameRules);
         }
 
         UpdateFill(force: true);
@@ -118,7 +126,7 @@ internal sealed class OverlayController : IDisposable
         var mode = rasterizedSettings?.ColorMode ?? CrosshairColorMode.Static;
         SetTimer(rainbowTimer, shown && mode == CrosshairColorMode.Rainbow);
         SetTimer(adaptiveTimer, shown && mode == CrosshairColorMode.Adaptive);
-        SetTimer(foregroundTimer, options.Visible && options.ShowOnlyOverGame);
+        SetTimer(foregroundTimer, (options.Visible && options.ShowOnlyOverGame) || options.GameRules.Any(rule => rule.PresetId is not null));
     }
 
     private void UpdateFill(bool force)
@@ -175,8 +183,24 @@ internal sealed class OverlayController : IDisposable
             return;
         }
 
-        var matches = ForegroundWindow.Matches(ForegroundWindow.Get(), options.GameWindowTitles);
-        if (matches != gameInForeground)
+        var foreground = ForegroundWindow.Get();
+        var rule = ForegroundWindow.FindRule(foreground, options.GameRules);
+        if (rule is not null)
+        {
+            var isNewGame = rule != detectedRule;
+            detectedRule = rule;
+            if (isNewGame && rule.PresetId is not null)
+            {
+                GameDetected?.Invoke(this, rule);
+            }
+        }
+        else if (foreground is not { IsOwnProcess: true })
+        {
+            detectedRule = null;
+        }
+
+        var matches = foreground is { IsOwnProcess: true } || rule is not null;
+        if (options.ShowOnlyOverGame && matches != gameInForeground)
         {
             gameInForeground = matches;
             UpdateVisibility();

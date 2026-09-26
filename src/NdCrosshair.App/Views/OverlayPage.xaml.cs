@@ -13,23 +13,23 @@ public partial class OverlayPage : UserControl
 
     private void OnResetOffset(object sender, RoutedEventArgs e) => PageActions.ViewModel(this).ResetOffset();
 
-    private void OnAddTitle(object sender, RoutedEventArgs e) => PageActions.ViewModel(this).AddGameTitle();
+    private void OnAddRule(object sender, RoutedEventArgs e) => PageActions.ViewModel(this).AddGameRule();
 
     private void OnCaptureWindow(object sender, RoutedEventArgs e) => PageActions.ViewModel(this).StartWindowCapture();
 
-    private void OnRemoveTitle(object sender, RoutedEventArgs e)
+    private void OnRemoveRule(object sender, RoutedEventArgs e)
     {
-        if (sender is FrameworkElement { Tag: string title })
+        if (sender is FrameworkElement { Tag: GameRuleItem rule })
         {
-            PageActions.ViewModel(this).RemoveGameTitle(title);
+            PageActions.ViewModel(this).RemoveGameRule(rule);
         }
     }
 
-    private void OnTitleKeyDown(object sender, KeyEventArgs e)
+    private void OnRuleKeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key == Key.Enter)
         {
-            PageActions.ViewModel(this).AddGameTitle();
+            PageActions.ViewModel(this).AddGameRule();
             e.Handled = true;
         }
     }

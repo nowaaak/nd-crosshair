@@ -77,6 +77,7 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
         Loc.Instance.LanguageChanged += (_, _) =>
         {
             RefreshMonitors();
+            SyncPresetChoices();
             OnPropertyChanged(string.Empty);
         };
     }
@@ -340,9 +341,28 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
         SelectedPreset = Presets[index == Presets.Count - 1 ? index - 1 : index + 1];
         removed.PropertyChanged -= OnPresetItemChanged;
         Presets.Remove(removed);
+        foreach (var rule in GameRules.Where(rule => rule.PresetId == removed.Id))
+        {
+            rule.PresetId = null;
+        }
+
+        SyncPresetChoices();
         OnPropertyChanged(nameof(CanDeletePreset));
         OnPropertyChanged(nameof(SelectedPresetIndex));
-        Changed?.Invoke(this, ChangeKind.Presets | ChangeKind.Hotkey);
+        Changed?.Invoke(this, ChangeKind.Presets | ChangeKind.Hotkey | ChangeKind.Overlay);
+    }
+
+    public int IndexOfPreset(Guid id)
+    {
+        for (var i = 0; i < Presets.Count; i++)
+        {
+            if (Presets[i].Id == id)
+            {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
     public void SelectPreset(int index)
@@ -433,7 +453,7 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
         PreviousPresetHotkey = previousPresetHotkey,
         PositionHotkeysEnabled = positionHotkeysEnabled,
         ShowOnlyOverGame = showOnlyOverGame,
-        GameWindowTitles = GameWindowTitles.ToList(),
+        GameRules = GameRules.Select(rule => rule.ToRule()).ToList(),
         StreamerMode = streamerMode,
         StartMinimized = startMinimized,
         MinimizeToTray = minimizeToTray,
@@ -454,6 +474,13 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
     {
         config = config.Normalize();
 
+        foreach (var rule in GameRules)
+        {
+            rule.PropertyChanged -= OnGameRuleChanged;
+        }
+
+        GameRules.Clear();
+
         foreach (var item in Presets)
         {
             item.PropertyChanged -= OnPresetItemChanged;
@@ -465,6 +492,7 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
             AddPresetItem(new PresetItem(preset.Name, preset.Settings, preset.Id, preset.Hotkey));
         }
 
+        SyncPresetChoices();
         selectedPreset = Presets[config.ActivePresetIndex];
         monitorDeviceName = config.MonitorDeviceName;
         offsetX = config.OffsetX;
@@ -475,10 +503,9 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
         previousPresetHotkey = config.PreviousPresetHotkey;
         positionHotkeysEnabled = config.PositionHotkeysEnabled;
         showOnlyOverGame = config.ShowOnlyOverGame;
-        GameWindowTitles.Clear();
-        foreach (var title in config.GameWindowTitles)
+        foreach (var rule in config.GameRules)
         {
-            GameWindowTitles.Add(title);
+            AddGameRuleItem(new GameRuleItem(rule));
         }
 
         streamerMode = config.StreamerMode;
@@ -492,6 +519,7 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
     private void InsertPreset(PresetItem item)
     {
         AddPresetItem(item);
+        SyncPresetChoices();
         OnPropertyChanged(nameof(CanDeletePreset));
         SelectedPreset = item;
     }
@@ -506,6 +534,7 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
     {
         if (e.PropertyName == nameof(PresetItem.Name))
         {
+            SyncPresetChoices();
             Changed?.Invoke(this, ChangeKind.Presets);
         }
         else if (e.PropertyName == nameof(PresetItem.Hotkey))

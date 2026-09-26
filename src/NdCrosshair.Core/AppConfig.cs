@@ -61,8 +61,8 @@ public enum AppLanguage
 public sealed record AppConfig
 {
     public const int MaxOffset = 500;
-    public const int MaxGameWindowTitles = 10;
-    public const int MaxGameWindowTitleLength = 100;
+    public const int MaxGameRules = 20;
+    public const string DefaultGameProcess = "FortniteClient-Win64-Shipping.exe";
 
     public IReadOnlyList<Preset> Presets { get; init; } = [new Preset("Standard", new CrosshairSettings())];
 
@@ -86,7 +86,10 @@ public sealed record AppConfig
 
     public bool ShowOnlyOverGame { get; init; }
 
-    public IReadOnlyList<string> GameWindowTitles { get; init; } = ["Fortnite"];
+    public IReadOnlyList<GameRule> GameRules { get; init; } = [new GameRule(GameMatchKind.Process, DefaultGameProcess)];
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<string>? GameWindowTitles { get; init; }
 
     public bool StreamerMode { get; init; }
 
@@ -120,14 +123,6 @@ public sealed record AppConfig
             presets.Add(new Preset("Standard", new CrosshairSettings()));
         }
 
-        var titles = (GameWindowTitles ?? [])
-            .Where(title => !string.IsNullOrWhiteSpace(title))
-            .Select(title => title.Trim())
-            .Select(title => title.Length > MaxGameWindowTitleLength ? title[..MaxGameWindowTitleLength] : title)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .Take(MaxGameWindowTitles)
-            .ToList();
-
         return this with
         {
             Presets = presets,
@@ -138,8 +133,26 @@ public sealed record AppConfig
             Hotkey = (Hotkey ?? HotkeyBinding.Default).Normalize(),
             NextPresetHotkey = (NextPresetHotkey ?? HotkeyBinding.None).Normalize(),
             PreviousPresetHotkey = (PreviousPresetHotkey ?? HotkeyBinding.None).Normalize(),
-            GameWindowTitles = titles,
+            GameRules = NormalizeGameRules(presets),
+            GameWindowTitles = null,
             Language = Enum.IsDefined(Language) ? Language : AppLanguage.System,
         };
+    }
+
+    private List<GameRule> NormalizeGameRules(IReadOnlyList<Preset> presets)
+    {
+        var presetIds = presets.Select(preset => preset.Id).ToHashSet();
+        var source = GameWindowTitles is not null
+            ? GameWindowTitles.Select(title => new GameRule(GameMatchKind.WindowTitle, title))
+            : GameRules ?? [];
+
+        return source
+            .Where(rule => rule is not null)
+            .Select(rule => rule.Normalize())
+            .OfType<GameRule>()
+            .Select(rule => rule.PresetId is { } presetId && !presetIds.Contains(presetId) ? rule with { PresetId = null } : rule)
+            .DistinctBy(rule => (rule.Kind, rule.Pattern.ToUpperInvariant()))
+            .Take(MaxGameRules)
+            .ToList();
     }
 }

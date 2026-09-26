@@ -61,6 +61,7 @@ internal sealed class AppController : IDisposable
         hotkeys.Pressed += OnHotkeyPressed;
         overlay.StreamerModeUnavailable += (_, _) => toasts.Show(Loc.T("ToastStreamerUnavailable"));
         overlay.RenderFailed += (_, _) => toasts.Show(Loc.T("ToastRenderFailed"));
+        overlay.GameDetected += OnGameDetected;
         tray.OpenSettingsRequested += (_, _) => ShowSettings();
         tray.ToggleRequested += (_, _) => viewModel.OverlayVisible = !viewModel.OverlayVisible;
         tray.PresetSelected += (_, index) => viewModel.SelectPreset(index);
@@ -224,6 +225,14 @@ internal sealed class AppController : IDisposable
             case HotkeyAction.ResetPosition:
                 viewModel.ResetOffset();
                 break;
+        }
+    }
+
+    private void OnGameDetected(object? sender, GameRule rule)
+    {
+        if (rule.PresetId is { } presetId)
+        {
+            ActivatePreset(viewModel.IndexOfPreset(presetId));
         }
     }
 

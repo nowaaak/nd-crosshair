@@ -39,7 +39,11 @@ internal sealed partial class MainViewModel
 
     public ObservableCollection<MonitorOption> Monitors { get; } = [];
 
-    public ObservableCollection<string> GameWindowTitles { get; } = [];
+    public ObservableCollection<GameRuleItem> GameRules { get; } = [];
+
+    public ObservableCollection<PresetChoice> PresetChoices { get; } = [];
+
+    public bool HasGameRules => GameRules.Count > 0;
 
     public bool PositionHotkeysEnabled
     {
@@ -265,16 +269,20 @@ internal sealed partial class MainViewModel
         OffsetY = 0;
     }
 
-    public void AddGameTitle()
+    public void AddGameRule()
     {
-        AddGameTitle(NewGameTitle);
-        NewGameTitle = string.Empty;
+        if (AddGameRule(GameRule.FromInput(NewGameTitle)))
+        {
+            NewGameTitle = string.Empty;
+        }
     }
 
-    public void RemoveGameTitle(string title)
+    public void RemoveGameRule(GameRuleItem rule)
     {
-        if (GameWindowTitles.Remove(title))
+        rule.PropertyChanged -= OnGameRuleChanged;
+        if (GameRules.Remove(rule))
         {
+            OnPropertyChanged(nameof(HasGameRules));
             Changed?.Invoke(this, ChangeKind.Overlay);
         }
     }
@@ -299,7 +307,7 @@ internal sealed partial class MainViewModel
         offsetY,
         overlayVisible,
         showOnlyOverGame,
-        GameWindowTitles.ToList(),
+        GameRules.Select(rule => rule.ToRule()).ToList(),
         streamerMode);
 
     private void OnCaptureTick(object? sender, EventArgs e)
@@ -316,31 +324,78 @@ internal sealed partial class MainViewModel
         OnPropertyChanged(nameof(IsCapturingWindow));
 
         var foreground = ForegroundWindow.Get();
-        if (foreground is { IsOwnProcess: false } info && !string.IsNullOrWhiteSpace(info.Title))
-        {
-            AddGameTitle(info.Title);
-            CaptureStatus = Loc.Format("CaptureAdded", info.Title.Trim());
-        }
-        else
+        var rule = foreground is { IsOwnProcess: false } info
+            ? GameRule.FromInput(info.ProcessName) ?? GameRule.FromInput(info.Title)
+            : null;
+
+        if (rule is null)
         {
             CaptureStatus = Loc.T("CaptureFailed");
         }
+        else if (AddGameRule(rule))
+        {
+            CaptureStatus = Loc.Format("CaptureAdded", rule.Pattern);
+        }
+        else
+        {
+            CaptureStatus = Loc.Format("CaptureAlreadyListed", rule.Pattern);
+        }
     }
 
-    private void AddGameTitle(string title)
+    private bool AddGameRule(GameRule? rule)
     {
-        var trimmed = title.Trim();
-        if (trimmed.Length == 0
-            || GameWindowTitles.Count >= AppConfig.MaxGameWindowTitles
-            || GameWindowTitles.Contains(trimmed, StringComparer.OrdinalIgnoreCase))
+        if (rule is null
+            || GameRules.Count >= AppConfig.MaxGameRules
+            || GameRules.Any(item => item.Kind == rule.Kind && string.Equals(item.Pattern, rule.Pattern, StringComparison.OrdinalIgnoreCase)))
         {
-            return;
+            return false;
         }
 
-        GameWindowTitles.Add(trimmed.Length > AppConfig.MaxGameWindowTitleLength
-            ? trimmed[..AppConfig.MaxGameWindowTitleLength]
-            : trimmed);
+        AddGameRuleItem(new GameRuleItem(rule));
         Changed?.Invoke(this, ChangeKind.Overlay);
+        return true;
+    }
+
+    private void AddGameRuleItem(GameRuleItem item)
+    {
+        item.PropertyChanged += OnGameRuleChanged;
+        GameRules.Add(item);
+        OnPropertyChanged(nameof(HasGameRules));
+    }
+
+    private void OnGameRuleChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e) =>
+        Changed?.Invoke(this, ChangeKind.Overlay);
+
+    private void SyncPresetChoices()
+    {
+        if (PresetChoices.Count == 0 || PresetChoices[0].Id is not null)
+        {
+            PresetChoices.Insert(0, new PresetChoice(null, Loc.T("RuleKeepPreset")));
+        }
+
+        PresetChoices[0].Name = Loc.T("RuleKeepPreset");
+
+        for (var i = 0; i < Presets.Count; i++)
+        {
+            var preset = Presets[i];
+            var index = PresetChoices.Select(choice => choice.Id).ToList().IndexOf(preset.Id);
+            if (index < 0)
+            {
+                PresetChoices.Insert(i + 1, new PresetChoice(preset.Id, preset.Name));
+                continue;
+            }
+
+            PresetChoices[index].Name = preset.Name;
+            if (index != i + 1)
+            {
+                PresetChoices.Move(index, i + 1);
+            }
+        }
+
+        while (PresetChoices.Count > Presets.Count + 1)
+        {
+            PresetChoices.RemoveAt(PresetChoices.Count - 1);
+        }
     }
 
     private void SetHotkey(ref HotkeyBinding field, HotkeyBinding value, [System.Runtime.CompilerServices.CallerMemberName] string? propertyName = null)

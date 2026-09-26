@@ -51,8 +51,8 @@ public sealed class ConfigStoreTests : IDisposable
 
         Assert.Equal(ConfigLoadStatus.Loaded, result.Status);
         Assert.Equal(config.Presets, result.Config.Presets);
-        Assert.Equal(config.GameWindowTitles, result.Config.GameWindowTitles);
-        Assert.Equal(config with { Presets = result.Config.Presets, GameWindowTitles = result.Config.GameWindowTitles }, result.Config);
+        Assert.Equal(config.GameRules, result.Config.GameRules);
+        Assert.Equal(config with { Presets = result.Config.Presets, GameRules = result.Config.GameRules }, result.Config);
         Assert.False(File.Exists(FilePath + ".tmp"));
     }
 
@@ -117,7 +117,11 @@ public sealed class ConfigStoreTests : IDisposable
         {
             Presets = [preset],
             ShowOnlyOverGame = true,
-            GameWindowTitles = ["Fortnite", "VALORANT"],
+            GameRules =
+            [
+                new GameRule(GameMatchKind.Process, "VALORANT-Win64-Shipping.exe") { PresetId = preset.Id },
+                new GameRule(GameMatchKind.WindowTitle, "Fortnite"),
+            ],
             PositionHotkeysEnabled = true,
             StreamerMode = true,
             StartMinimized = false,
@@ -133,8 +137,8 @@ public sealed class ConfigStoreTests : IDisposable
         var imported = ConfigStore.Import(path);
 
         Assert.Equal(config.Presets, imported.Presets);
-        Assert.Equal(config.GameWindowTitles, imported.GameWindowTitles);
-        Assert.Equal(config with { Presets = imported.Presets, GameWindowTitles = imported.GameWindowTitles }, imported);
+        Assert.Equal(config.GameRules, imported.GameRules);
+        Assert.Equal(config with { Presets = imported.Presets, GameRules = imported.GameRules }, imported);
         Assert.Contains("\"rainbow\"", File.ReadAllText(path), StringComparison.OrdinalIgnoreCase);
     }
 
@@ -150,7 +154,7 @@ public sealed class ConfigStoreTests : IDisposable
     }
 
     [Fact]
-    public void Load_NormalizesGameWindowTitles()
+    public void Load_MigratesLegacyGameWindowTitlesToTitleRules()
     {
         Directory.CreateDirectory(directory);
         File.WriteAllText(FilePath, $$"""
@@ -165,11 +169,58 @@ public sealed class ConfigStoreTests : IDisposable
             { "gameWindowTitles": [ "  Fortnite ", "", "fortnite", "{{new string('x', 300)}}", null ] }
             """);
 
-        var titles = new ConfigStore(FilePath).Load().Config.GameWindowTitles;
+        var store = new ConfigStore(FilePath);
+        var config = store.Load().Config;
 
-        Assert.Equal(2, titles.Count);
-        Assert.Equal("Fortnite", titles[0]);
-        Assert.Equal(AppConfig.MaxGameWindowTitleLength, titles[1].Length);
+        Assert.Null(config.GameWindowTitles);
+        Assert.Equal(2, config.GameRules.Count);
+        Assert.All(config.GameRules, rule => Assert.Equal(GameMatchKind.WindowTitle, rule.Kind));
+        Assert.Equal("Fortnite", config.GameRules[0].Pattern);
+        Assert.Equal(GameRule.MaxPatternLength, config.GameRules[1].Pattern.Length);
+
+        store.Save(config);
+        Assert.DoesNotContain("gameWindowTitles", File.ReadAllText(FilePath), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Load_WithoutGameSettings_UsesFortniteProcessRule()
+    {
+        Directory.CreateDirectory(directory);
+        File.WriteAllText(FilePath, "{}");
+
+        var rule = Assert.Single(new ConfigStore(FilePath).Load().Config.GameRules);
+
+        Assert.Equal(GameMatchKind.Process, rule.Kind);
+        Assert.Equal(AppConfig.DefaultGameProcess, rule.Pattern);
+    }
+
+    [Fact]
+    public void Normalize_RepairsPresetIdsAndDropsDanglingRuleLinks()
+    {
+        var shared = Guid.NewGuid();
+        var config = new AppConfig
+        {
+            Presets =
+            [
+                new Preset("A", new CrosshairSettings()) { Id = shared },
+                new Preset("B", new CrosshairSettings()) { Id = shared },
+                new Preset("C", new CrosshairSettings()) { Id = Guid.Empty },
+            ],
+            GameRules =
+            [
+                new GameRule(GameMatchKind.Process, @"C:\Games\cs2.exe") { PresetId = shared },
+                new GameRule(GameMatchKind.Process, "CS2.EXE"),
+                new GameRule(GameMatchKind.WindowTitle, "Apex") { PresetId = Guid.NewGuid() },
+            ],
+        }.Normalize();
+
+        Assert.Equal(3, config.Presets.Select(preset => preset.Id).Distinct().Count());
+        Assert.DoesNotContain(Guid.Empty, config.Presets.Select(preset => preset.Id));
+        Assert.Equal(shared, config.Presets[0].Id);
+        Assert.Equal(2, config.GameRules.Count);
+        Assert.Equal("cs2.exe", config.GameRules[0].Pattern);
+        Assert.Equal(shared, config.GameRules[0].PresetId);
+        Assert.Null(config.GameRules[1].PresetId);
     }
 
     [Fact]

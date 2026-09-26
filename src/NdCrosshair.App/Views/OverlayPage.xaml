@@ -27,29 +27,47 @@
                     </controls:SettingCard.Body>
                 </controls:SettingCard>
 
-                <TextBlock Text="{l:T SectionBehavior}" Style="{StaticResource SectionHeader}" />
-                <controls:SettingCard Glyph="&#xE7FC;" Header="{l:T GameOnlyHeader}" Description="{l:T GameOnlyDescription}">
-                    <CheckBox Style="{StaticResource SwitchCheckBox}" Margin="0" IsChecked="{Binding ShowOnlyOverGame}"
-                              AutomationProperties.Name="{l:T GameOnlyHeader}" />
+                <TextBlock Text="{l:T SectionGames}" Style="{StaticResource SectionHeader}" />
+                <controls:SettingCard Glyph="&#xE7FC;" Header="{l:T GamesHeader}" Description="{l:T GamesDescription}">
                     <controls:SettingCard.Body>
-                        <StackPanel IsEnabled="{Binding ShowOnlyOverGame}">
-                            <TextBlock Text="{l:T GameTitlesLabel}" Style="{StaticResource SecondaryText}" FontSize="12" Margin="0,0,0,6" />
-                            <ItemsControl ItemsSource="{Binding GameWindowTitles}" Focusable="False">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <WrapPanel />
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
+                        <StackPanel>
+                            <TextBlock Text="{l:T GamesEmpty}" Style="{StaticResource SecondaryText}" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,6"
+                                       Visibility="{Binding HasGameRules, Converter={StaticResource Collapsed}}" />
+                            <ItemsControl ItemsSource="{Binding GameRules}" Focusable="False">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <Border Background="{StaticResource ControlBrush}" BorderBrush="{StaticResource ControlBorderBrush}"
-                                                BorderThickness="1" CornerRadius="14" Padding="12,2,4,2" Margin="0,0,6,6">
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="{Binding}" VerticalAlignment="Center" />
-                                                <Button Style="{StaticResource IconButton}" Content="&#xE711;" FontSize="9" Width="22" Height="22"
-                                                        Margin="6,0,0,0" Tag="{Binding}" Click="OnRemoveTitle"
+                                                BorderThickness="1" CornerRadius="6" Padding="10,4,4,4" Margin="0,0,0,6">
+                                            <DockPanel>
+                                                <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Content="&#xE711;" FontSize="9"
+                                                        Width="28" Height="28" Margin="6,0,0,0" Tag="{Binding}" Click="OnRemoveRule"
                                                         AutomationProperties.Name="{l:T Remove}" />
-                                            </StackPanel>
+                                                <ComboBox DockPanel.Dock="Right" Width="200"
+                                                          ItemsSource="{Binding DataContext.PresetChoices, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                          DisplayMemberPath="Name" SelectedValuePath="Id"
+                                                          SelectedValue="{Binding PresetId, Mode=TwoWay}"
+                                                          AutomationProperties.Name="{l:T RulePresetLabel}" />
+                                                <TextBlock DockPanel.Dock="Left" FontFamily="{StaticResource IconFont}" FontSize="14" VerticalAlignment="Center"
+                                                           Margin="0,0,10,0" Foreground="{StaticResource AccentBrush}">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Text" Value="&#xE8A5;" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsProcess}" Value="True">
+                                                                    <Setter Property="Text" Value="&#xE7FC;" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                                <StackPanel VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding Pattern}" TextTrimming="CharacterEllipsis" />
+                                                    <TextBlock Text="{l:T RuleKindProcess}" Style="{StaticResource SecondaryText}" FontSize="11"
+                                                               Visibility="{Binding IsProcess, Converter={StaticResource Visible}}" />
+                                                    <TextBlock Text="{l:T RuleKindTitle}" Style="{StaticResource SecondaryText}" FontSize="11"
+                                                               Visibility="{Binding IsProcess, Converter={StaticResource Collapsed}}" />
+                                                </StackPanel>
+                                            </DockPanel>
                                         </Border>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
@@ -57,15 +75,22 @@
                             <DockPanel Margin="0,6,0,0">
                                 <Button DockPanel.Dock="Right" Content="{l:T CaptureWindow}" Margin="8,0,0,0" Click="OnCaptureWindow"
                                         IsEnabled="{Binding IsCapturingWindow, Converter={x:Static controls:Inverter.Instance}}" />
-                                <Button DockPanel.Dock="Right" Content="{l:T Add}" Margin="8,0,0,0" Click="OnAddTitle" />
-                                <TextBox Text="{Binding NewGameTitle, UpdateSourceTrigger=PropertyChanged}" KeyDown="OnTitleKeyDown"
-                                         AutomationProperties.Name="{l:T GameTitlesLabel}" />
+                                <Button DockPanel.Dock="Right" Content="{l:T Add}" Margin="8,0,0,0" Click="OnAddRule" />
+                                <TextBox Text="{Binding NewGameTitle, UpdateSourceTrigger=PropertyChanged}" KeyDown="OnRuleKeyDown"
+                                         AutomationProperties.Name="{l:T GameRuleInputLabel}" />
                             </DockPanel>
+                            <TextBlock Text="{l:T GameRuleInputHint}" Style="{StaticResource SecondaryText}" FontSize="12" TextWrapping="Wrap" Margin="0,6,0,0" />
                             <TextBlock Text="{Binding CaptureStatus}" Style="{StaticResource SecondaryText}" FontSize="12" Margin="0,6,0,0"
                                        TextWrapping="Wrap" Visibility="{Binding CaptureStatus, Converter={StaticResource Visible}}" />
                         </StackPanel>
                     </controls:SettingCard.Body>
                 </controls:SettingCard>
+                <controls:SettingCard Glyph="&#xE7B3;" Header="{l:T GameOnlyHeader}" Description="{l:T GameOnlyDescription}">
+                    <CheckBox Style="{StaticResource SwitchCheckBox}" Margin="0" IsChecked="{Binding ShowOnlyOverGame}"
+                              AutomationProperties.Name="{l:T GameOnlyHeader}" />
+                </controls:SettingCard>
+
+                <TextBlock Text="{l:T SectionBehavior}" Style="{StaticResource SectionHeader}" />
                 <controls:SettingCard Glyph="&#xE714;" Header="{l:T StreamerHeader}" Description="{l:T StreamerDescription}">
                     <CheckBox Style="{StaticResource SwitchCheckBox}" Margin="0" IsChecked="{Binding StreamerMode}"
                               AutomationProperties.Name="{l:T StreamerHeader}" />
