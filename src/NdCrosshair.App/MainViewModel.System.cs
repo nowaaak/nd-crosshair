@@ -271,7 +271,7 @@ internal sealed partial class MainViewModel
         }
     }
 
-    public string ConfigFilePath => ConfigStore.DefaultFilePath;
+    public string ConfigFilePath => AppIdentity.ConfigFilePath;
 
     public string VersionText => Loc.Format(
         "AboutVersion",

@@ -8,10 +8,6 @@ namespace NdCrosshair.App;
 
 public partial class App : Application
 {
-    private const string AppName = "ND Crosshair";
-    private const string InstanceMutexName = @"Local\NdCrosshair.Instance";
-    private const string ShowSettingsEventName = @"Local\NdCrosshair.ShowSettings";
-
     private Mutex? instanceMutex;
     private EventWaitHandle? showSettingsEvent;
     private RegisteredWaitHandle? showSettingsWait;
@@ -21,7 +17,7 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
-        instanceMutex = new Mutex(true, InstanceMutexName, out var isFirstInstance);
+        instanceMutex = new Mutex(true, AppIdentity.InstanceMutexName, out var isFirstInstance);
         if (!isFirstInstance)
         {
             SignalRunningInstance();
@@ -36,17 +32,17 @@ public partial class App : Application
 
         try
         {
-            controller = new AppController(new ConfigStore(ConfigStore.DefaultFilePath));
+            controller = new AppController(new ConfigStore(AppIdentity.ConfigFilePath));
             controller.Start(e.Args.Contains(AutostartService.TrayArgument, StringComparer.OrdinalIgnoreCase));
         }
         catch (Exception exception)
         {
-            MessageBox.Show(Loc.Format("StartupFailed", exception.Message), AppName, MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(Loc.Format("StartupFailed", exception.Message), AppIdentity.DisplayName, MessageBoxButton.OK, MessageBoxImage.Error);
             Shutdown(1);
             return;
         }
 
-        showSettingsEvent = new EventWaitHandle(false, EventResetMode.AutoReset, ShowSettingsEventName);
+        showSettingsEvent = new EventWaitHandle(false, EventResetMode.AutoReset, AppIdentity.ShowSettingsEventName);
         showSettingsWait = ThreadPool.RegisterWaitForSingleObject(
             showSettingsEvent,
             (_, _) => Dispatcher.BeginInvoke(() => controller?.ShowSettings()),
@@ -67,7 +63,7 @@ public partial class App : Application
 
     private static void SignalRunningInstance()
     {
-        if (EventWaitHandle.TryOpenExisting(ShowSettingsEventName, out var runningInstanceEvent))
+        if (EventWaitHandle.TryOpenExisting(AppIdentity.ShowSettingsEventName, out var runningInstanceEvent))
         {
             using (runningInstanceEvent)
             {

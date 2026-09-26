@@ -71,9 +71,11 @@ dotnet publish src/NdCrosshair.App -c Release -r win-x64 --self-contained false 
 
 Beim ersten Start öffnen sich die Einstellungen. Danach startet die App standardmäßig im Hintergrund. Ein Doppelklick auf das Tray-Icon oder ein erneuter Start der EXE öffnet die Einstellungen. Beenden über das Tray-Menü.
 
-Autostart trägt den Pfad der gerade laufenden EXE in `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` ein. Autostart deshalb aus der veröffentlichten EXE heraus aktivieren, nicht aus einem Debug-Build.
+Autostart trägt den Pfad der gerade laufenden EXE in `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` ein. Die installierte Version stellt einen vorhandenen Eintrag beim Start automatisch auf sich um.
 
 Die Konfiguration liegt unter `%APPDATA%\NdCrosshair\config.json`. Eine beschädigte Datei wird beim Start als `config.json.corrupt-<Zeitstempel>` gesichert und durch Standardwerte ersetzt. Ist die Datei gesperrt oder nicht lesbar, startet die App mit Standardwerten und speichert in dieser Sitzung nichts, damit die Datei unverändert bleibt.
+
+Debug-Builds sind davon getrennt: Sie heißen "ND Crosshair Dev", speichern unter `%APPDATA%\NdCrosshair.Dev\config.json`, nutzen einen eigenen Autostart-Eintrag und laufen parallel zur installierten App.
 
 ## Release erstellen
 

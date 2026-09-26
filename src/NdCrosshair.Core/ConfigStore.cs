@@ -32,11 +32,6 @@ public sealed class ConfigStore
         FilePath = filePath;
     }
 
-    public static string DefaultFilePath => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "NdCrosshair",
-        "config.json");
-
     public string FilePath { get; }
 
     public static void Export(AppConfig config, string path)

@@ -11,7 +11,6 @@ namespace NdCrosshair.App;
 
 internal sealed class TrayIcon : IDisposable
 {
-    private const string AppName = "ND Crosshair";
     private const string SettingsGlyph = "";
     private const string ExitGlyph = "";
     private const string PresetGlyph = "";
@@ -41,7 +40,7 @@ internal sealed class TrayIcon : IDisposable
         notifyIcon = new Forms.NotifyIcon
         {
             Icon = icon,
-            Text = AppName,
+            Text = AppIdentity.DisplayName,
             Visible = true,
         };
         notifyIcon.MouseUp += OnNotifyIconMouseUp;

@@ -71,9 +71,11 @@ dotnet publish src/NdCrosshair.App -c Release -r win-x64 --self-contained false 
 
 The settings open on first launch. After that the app starts in the background by default. Double-click the tray icon or start the executable again to open the settings. Exit through the tray menu.
 
-"Start with Windows" registers the path of the currently running executable under `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`. Enable it from the executable you actually want to keep using.
+"Start with Windows" registers the path of the currently running executable under `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`. The installed version automatically points an existing entry to itself at startup.
 
 The configuration is stored in `%APPDATA%\NdCrosshair\config.json`. A corrupted file is backed up as `config.json.corrupt-<timestamp>` and replaced with defaults. If the file is locked or unreadable, the app starts with defaults and does not save anything in that session, so the file stays untouched.
+
+Debug builds are kept separate: they are called "ND Crosshair Dev", store their settings in `%APPDATA%\NdCrosshair.Dev\config.json`, use their own autostart entry and run side by side with the installed app.
 
 ## Releasing
 

@@ -21,6 +21,7 @@ internal partial class MainWindow : Window
         this.viewModel = viewModel;
         DataContext = viewModel;
         InitializeComponent();
+        Title = AppIdentity.DisplayName;
         StateChanged += OnStateChanged;
         PreviewKeyDown += OnWindowPreviewKeyDown;
     }

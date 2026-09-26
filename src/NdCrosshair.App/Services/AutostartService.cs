@@ -8,7 +8,7 @@ internal static class AutostartService
     public const string TrayArgument = "--tray";
 
     private const string RunKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
-    private const string ValueName = "NdCrosshair";
+    private const string ValueName = AppIdentity.Id;
 
     private static string Command => $"\"{Environment.ProcessPath}\" {TrayArgument}";
 
