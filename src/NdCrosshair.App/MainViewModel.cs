@@ -118,7 +118,7 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
 
     public bool ShowParityHint => Current.HasDotParityMismatch();
 
-    public string PreviewModeHint => Current.ColorMode switch
+    public string PreviewModeHint => CurrentStyle.ColorMode switch
     {
         CrosshairColorMode.Rainbow => Loc.T("PreviewHintRainbow"),
         _ => string.Empty,
@@ -242,68 +242,68 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
 
     public bool ShowOutline
     {
-        get => Current.ShowOutline;
-        set => Edit(Current with { ShowOutline = value });
+        get => CurrentStyle.ShowOutline;
+        set => EditStyle(CurrentStyle with { ShowOutline = value });
     }
 
     public int OutlineThickness
     {
-        get => Current.OutlineThickness;
-        set => Edit(Current with { OutlineThickness = value });
+        get => CurrentStyle.OutlineThickness;
+        set => EditStyle(CurrentStyle with { OutlineThickness = value });
     }
 
     public bool ShowShadow
     {
-        get => Current.ShowShadow;
-        set => Edit(Current with { ShowShadow = value });
+        get => CurrentStyle.ShowShadow;
+        set => EditStyle(CurrentStyle with { ShowShadow = value });
     }
 
     public int ShadowSize
     {
-        get => Current.ShadowSize;
-        set => Edit(Current with { ShadowSize = value });
+        get => CurrentStyle.ShadowSize;
+        set => EditStyle(CurrentStyle with { ShadowSize = value });
     }
 
     public int ShadowOpacity
     {
-        get => Current.ShadowOpacity;
-        set => Edit(Current with { ShadowOpacity = value });
+        get => CurrentStyle.ShadowOpacity;
+        set => EditStyle(CurrentStyle with { ShadowOpacity = value });
     }
 
     public int Opacity
     {
-        get => Current.Opacity;
-        set => Edit(Current with { Opacity = value });
+        get => CurrentStyle.Opacity;
+        set => EditStyle(CurrentStyle with { Opacity = value });
     }
 
     public CrosshairColorMode ColorMode
     {
-        get => Current.ColorMode;
-        set => Edit(Current with { ColorMode = value });
+        get => CurrentStyle.ColorMode;
+        set => EditStyle(CurrentStyle with { ColorMode = value });
     }
 
     public int RainbowSpeed
     {
-        get => Current.RainbowSpeed;
-        set => Edit(Current with { RainbowSpeed = value });
+        get => CurrentStyle.RainbowSpeed;
+        set => EditStyle(CurrentStyle with { RainbowSpeed = value });
     }
 
     public string ColorHex
     {
-        get => Current.Color.ToHex();
-        set => EditColor(value, color => Current with { Color = color });
+        get => CurrentStyle.Color.ToHex();
+        set => EditColor(value, color => EditStyle(CurrentStyle with { Color = color }));
     }
 
     public string OutlineColorHex
     {
-        get => Current.OutlineColor.ToHex();
-        set => EditColor(value, color => Current with { OutlineColor = color });
+        get => CurrentStyle.OutlineColor.ToHex();
+        set => EditColor(value, color => EditStyle(CurrentStyle with { OutlineColor = color }));
     }
 
     public string ShadowColorHex
     {
-        get => Current.ShadowColor.ToHex();
-        set => EditColor(value, color => Current with { ShadowColor = color });
+        get => CurrentStyle.ShadowColor.ToHex();
+        set => EditColor(value, color => EditStyle(CurrentStyle with { ShadowColor = color }));
     }
 
     public string ShareCodeText => DesignShareCode.Encode(selectedPreset.Design);
@@ -545,11 +545,11 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    private void EditColor(string value, Func<CrosshairColor, CrosshairSettings> update, [CallerMemberName] string? propertyName = null)
+    private void EditColor(string value, Action<CrosshairColor> update, [CallerMemberName] string? propertyName = null)
     {
         if (CrosshairColor.TryParseHex(value, out var color))
         {
-            Edit(update(color));
+            update(color);
         }
         else
         {

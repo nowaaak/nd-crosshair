@@ -32,67 +32,112 @@
             <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,8,24">
                 <Grid>
                     <StackPanel Visibility="{Binding DesignTab, Converter={StaticResource EnumVisibility}, ConverterParameter=Shape}">
-                        <GroupBox Header="{l:T CardLines}">
-                            <StackPanel>
-                                <app:SettingSlider Label="{l:T ArmCount}" Value="{Binding ArmCount}"
-                                                   Minimum="{x:Static core:CrosshairSettings.MinArmCount}"
-                                                   Maximum="{x:Static core:CrosshairSettings.MaxArmCount}" />
-                                <WrapPanel Margin="0,6,0,6" Visibility="{Binding IsFourArms, Converter={StaticResource Visible}}">
-                                    <CheckBox Style="{StaticResource ChipCheckBox}" Content="{l:T LineTop}" IsChecked="{Binding ShowTop}" />
-                                    <CheckBox Style="{StaticResource ChipCheckBox}" Content="{l:T LineBottom}" IsChecked="{Binding ShowBottom}" />
-                                    <CheckBox Style="{StaticResource ChipCheckBox}" Content="{l:T LineLeft}" IsChecked="{Binding ShowLeft}" />
-                                    <CheckBox Style="{StaticResource ChipCheckBox}" Content="{l:T LineRight}" IsChecked="{Binding ShowRight}" />
-                                </WrapPanel>
-                                <app:SettingSlider Label="{l:T Length}" Value="{Binding LineLength}"
-                                                   Minimum="{x:Static core:CrosshairSettings.MinLineLength}"
-                                                   Maximum="{x:Static core:CrosshairSettings.MaxLineLength}" />
-                                <app:SettingSlider Label="{l:T Thickness}" Value="{Binding LineThickness}"
-                                                   Minimum="{x:Static core:CrosshairSettings.MinLineThickness}"
-                                                   Maximum="{x:Static core:CrosshairSettings.MaxLineThickness}" />
-                                <app:SettingSlider Label="{l:T Gap}" Value="{Binding Gap}"
-                                                   Minimum="{x:Static core:CrosshairSettings.MinGap}"
-                                                   Maximum="{x:Static core:CrosshairSettings.MaxGap}" />
-                                <app:SettingSlider Label="{l:T Rotation}" Value="{Binding Rotation}"
-                                                   Minimum="{x:Static core:CrosshairSettings.MinRotation}"
-                                                   Maximum="{x:Static core:CrosshairSettings.MaxRotation}" />
-                            </StackPanel>
-                        </GroupBox>
+                        <StackPanel Visibility="{Binding IsClassicLayer, Converter={StaticResource Visible}}">
+                            <GroupBox Header="{l:T CardLines}">
+                                <StackPanel>
+                                    <app:SettingSlider Label="{l:T ArmCount}" Value="{Binding ArmCount}"
+                                                       Minimum="{x:Static core:CrosshairSettings.MinArmCount}"
+                                                       Maximum="{x:Static core:CrosshairSettings.MaxArmCount}" />
+                                    <WrapPanel Margin="0,6,0,6" Visibility="{Binding IsFourArms, Converter={StaticResource Visible}}">
+                                        <CheckBox Style="{StaticResource ChipCheckBox}" Content="{l:T LineTop}" IsChecked="{Binding ShowTop}" />
+                                        <CheckBox Style="{StaticResource ChipCheckBox}" Content="{l:T LineBottom}" IsChecked="{Binding ShowBottom}" />
+                                        <CheckBox Style="{StaticResource ChipCheckBox}" Content="{l:T LineLeft}" IsChecked="{Binding ShowLeft}" />
+                                        <CheckBox Style="{StaticResource ChipCheckBox}" Content="{l:T LineRight}" IsChecked="{Binding ShowRight}" />
+                                    </WrapPanel>
+                                    <app:SettingSlider Label="{l:T Length}" Value="{Binding LineLength}"
+                                                       Minimum="{x:Static core:CrosshairSettings.MinLineLength}"
+                                                       Maximum="{x:Static core:CrosshairSettings.MaxLineLength}" />
+                                    <app:SettingSlider Label="{l:T Thickness}" Value="{Binding LineThickness}"
+                                                       Minimum="{x:Static core:CrosshairSettings.MinLineThickness}"
+                                                       Maximum="{x:Static core:CrosshairSettings.MaxLineThickness}" />
+                                    <app:SettingSlider Label="{l:T Gap}" Value="{Binding Gap}"
+                                                       Minimum="{x:Static core:CrosshairSettings.MinGap}"
+                                                       Maximum="{x:Static core:CrosshairSettings.MaxGap}" />
+                                    <app:SettingSlider Label="{l:T Rotation}" Value="{Binding Rotation}"
+                                                       Minimum="{x:Static core:CrosshairSettings.MinRotation}"
+                                                       Maximum="{x:Static core:CrosshairSettings.MaxRotation}" />
+                                </StackPanel>
+                            </GroupBox>
 
-                        <GroupBox>
-                            <GroupBox.Header>
-                                <DockPanel>
-                                    <CheckBox DockPanel.Dock="Right" Style="{StaticResource SwitchCheckBox}" Margin="0"
-                                              IsChecked="{Binding ShowDot}" AutomationProperties.Name="{l:T CardDot}" />
-                                    <TextBlock Text="{l:T CardDot}" VerticalAlignment="Center" />
-                                </DockPanel>
-                            </GroupBox.Header>
-                            <StackPanel IsEnabled="{Binding ShowDot}">
-                                <CheckBox Content="{l:T DotRound}" IsChecked="{Binding RoundDot}" />
-                                <app:SettingSlider Label="{l:T Size}" Value="{Binding DotSize}"
-                                                   Minimum="{x:Static core:CrosshairSettings.MinDotSize}"
-                                                   Maximum="{x:Static core:CrosshairSettings.MaxDotSize}" />
-                                <TextBlock Text="{l:T DotParityHint}" Style="{StaticResource WarningText}" FontSize="12" TextWrapping="Wrap"
-                                           Margin="0,6,0,0" Visibility="{Binding ShowParityHint, Converter={StaticResource Visible}}" />
-                            </StackPanel>
-                        </GroupBox>
+                            <GroupBox>
+                                <GroupBox.Header>
+                                    <DockPanel>
+                                        <CheckBox DockPanel.Dock="Right" Style="{StaticResource SwitchCheckBox}" Margin="0"
+                                                  IsChecked="{Binding ShowDot}" AutomationProperties.Name="{l:T CardDot}" />
+                                        <TextBlock Text="{l:T CardDot}" VerticalAlignment="Center" />
+                                    </DockPanel>
+                                </GroupBox.Header>
+                                <StackPanel IsEnabled="{Binding ShowDot}">
+                                    <CheckBox Content="{l:T DotRound}" IsChecked="{Binding RoundDot}" />
+                                    <app:SettingSlider Label="{l:T Size}" Value="{Binding DotSize}"
+                                                       Minimum="{x:Static core:CrosshairSettings.MinDotSize}"
+                                                       Maximum="{x:Static core:CrosshairSettings.MaxDotSize}" />
+                                    <TextBlock Text="{l:T DotParityHint}" Style="{StaticResource WarningText}" FontSize="12" TextWrapping="Wrap"
+                                               Margin="0,6,0,0" Visibility="{Binding ShowParityHint, Converter={StaticResource Visible}}" />
+                                </StackPanel>
+                            </GroupBox>
 
-                        <GroupBox Margin="0">
-                            <GroupBox.Header>
-                                <DockPanel>
-                                    <CheckBox DockPanel.Dock="Right" Style="{StaticResource SwitchCheckBox}" Margin="0"
-                                              IsChecked="{Binding ShowRing}" AutomationProperties.Name="{l:T CardRing}" />
-                                    <TextBlock Text="{l:T CardRing}" VerticalAlignment="Center" />
-                                </DockPanel>
-                            </GroupBox.Header>
-                            <StackPanel IsEnabled="{Binding ShowRing}">
-                                <app:SettingSlider Label="{l:T Radius}" Value="{Binding RingRadius}"
-                                                   Minimum="{x:Static core:CrosshairSettings.MinRingRadius}"
-                                                   Maximum="{x:Static core:CrosshairSettings.MaxRingRadius}" />
-                                <app:SettingSlider Label="{l:T Thickness}" Value="{Binding RingThickness}"
-                                                   Minimum="{x:Static core:CrosshairSettings.MinRingThickness}"
-                                                   Maximum="{x:Static core:CrosshairSettings.MaxRingThickness}" />
-                            </StackPanel>
-                        </GroupBox>
+                            <GroupBox Margin="0">
+                                <GroupBox.Header>
+                                    <DockPanel>
+                                        <CheckBox DockPanel.Dock="Right" Style="{StaticResource SwitchCheckBox}" Margin="0"
+                                                  IsChecked="{Binding ShowRing}" AutomationProperties.Name="{l:T CardRing}" />
+                                        <TextBlock Text="{l:T CardRing}" VerticalAlignment="Center" />
+                                    </DockPanel>
+                                </GroupBox.Header>
+                                <StackPanel IsEnabled="{Binding ShowRing}">
+                                    <app:SettingSlider Label="{l:T Radius}" Value="{Binding RingRadius}"
+                                                       Minimum="{x:Static core:CrosshairSettings.MinRingRadius}"
+                                                       Maximum="{x:Static core:CrosshairSettings.MaxRingRadius}" />
+                                    <app:SettingSlider Label="{l:T Thickness}" Value="{Binding RingThickness}"
+                                                       Minimum="{x:Static core:CrosshairSettings.MinRingThickness}"
+                                                       Maximum="{x:Static core:CrosshairSettings.MaxRingThickness}" />
+                                </StackPanel>
+                            </GroupBox>
+                        </StackPanel>
+
+                        <StackPanel Visibility="{Binding IsShapeLayer, Converter={StaticResource Visible}}">
+                            <GroupBox Header="{l:T CardShape}" Margin="0">
+                                <StackPanel>
+                                    <Border Style="{StaticResource SegmentHost}" HorizontalAlignment="Left">
+                                        <StackPanel Orientation="Horizontal">
+                                            <RadioButton Style="{StaticResource SegmentButton}" GroupName="ShapeKind" Content="{l:T ShapeRectangle}"
+                                                         IsChecked="{Binding ShapeKind, Converter={StaticResource EnumMatch}, ConverterParameter=Rectangle}" />
+                                            <RadioButton Style="{StaticResource SegmentButton}" GroupName="ShapeKind" Content="{l:T ShapeTriangle}"
+                                                         IsChecked="{Binding ShapeKind, Converter={StaticResource EnumMatch}, ConverterParameter=Triangle}" />
+                                            <RadioButton Style="{StaticResource SegmentButton}" GroupName="ShapeKind" Content="{l:T ShapeChevron}"
+                                                         IsChecked="{Binding ShapeKind, Converter={StaticResource EnumMatch}, ConverterParameter=Chevron}" />
+                                            <RadioButton Style="{StaticResource SegmentButton}" GroupName="ShapeKind" Content="{l:T ShapeArc}"
+                                                         IsChecked="{Binding ShapeKind, Converter={StaticResource EnumMatch}, ConverterParameter=Arc}" />
+                                            <RadioButton Style="{StaticResource SegmentButton}" GroupName="ShapeKind" Content="{l:T ShapeTShape}"
+                                                         IsChecked="{Binding ShapeKind, Converter={StaticResource EnumMatch}, ConverterParameter=TShape}" />
+                                        </StackPanel>
+                                    </Border>
+                                    <CheckBox Content="{l:T ShapeFilled}" IsChecked="{Binding ShapeFilled}" Margin="0,12,0,4"
+                                              Visibility="{Binding ShapeSupportsFill, Converter={StaticResource Visible}}" />
+                                    <app:SettingSlider Label="{l:T ShapeWidth}" Value="{Binding ShapeWidth}" Margin="0,8,0,0"
+                                                       Minimum="{x:Static core:ShapeLayer.MinSize}"
+                                                       Maximum="{x:Static core:ShapeLayer.MaxSize}" />
+                                    <app:SettingSlider Label="{l:T ShapeHeight}" Value="{Binding ShapeHeight}"
+                                                       Minimum="{x:Static core:ShapeLayer.MinSize}"
+                                                       Maximum="{x:Static core:ShapeLayer.MaxSize}"
+                                                       Visibility="{Binding ShapeUsesHeight, Converter={StaticResource Visible}}" />
+                                    <app:SettingSlider Label="{l:T Thickness}" Value="{Binding ShapeThickness}"
+                                                       Minimum="{x:Static core:ShapeLayer.MinThickness}"
+                                                       Maximum="{x:Static core:ShapeLayer.MaxThickness}"
+                                                       IsEnabled="{Binding ShapeUsesThickness}" />
+                                    <app:SettingSlider Label="{l:T ShapeSweep}" Value="{Binding ShapeSweep}"
+                                                       Minimum="{x:Static core:ShapeLayer.MinSweep}"
+                                                       Maximum="{x:Static core:ShapeLayer.MaxSweep}"
+                                                       Visibility="{Binding IsArcShape, Converter={StaticResource Visible}}" />
+                                    <app:SettingSlider Label="{l:T Rotation}" Value="{Binding ShapeRotation}"
+                                                       Minimum="{x:Static core:CrosshairSettings.MinRotation}"
+                                                       Maximum="{x:Static core:CrosshairSettings.MaxRotation}" />
+                                    <TextBlock Text="{l:T ShapeHint}" Style="{StaticResource SecondaryText}" FontSize="12"
+                                               TextWrapping="Wrap" Margin="0,6,0,0" />
+                                </StackPanel>
+                            </GroupBox>
+                        </StackPanel>
                     </StackPanel>
 
                     <StackPanel Visibility="{Binding DesignTab, Converter={StaticResource EnumVisibility}, ConverterParameter=Color}">

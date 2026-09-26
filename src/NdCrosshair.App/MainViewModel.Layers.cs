@@ -6,7 +6,8 @@ namespace NdCrosshair.App;
 
 internal sealed partial class MainViewModel
 {
-    private const string ClassicGlyph = "";
+    private static readonly string ClassicGlyph = char.ConvertFromUtf32(0xE710);
+    private static readonly string ShapeGlyph = char.ConvertFromUtf32(0xF158);
 
     private int selectedLayerIndex;
     private bool syncingLayers;
@@ -81,6 +82,29 @@ internal sealed partial class MainViewModel
     public int MaxLayerOffset => CrosshairLayer.MaxOffset;
 
     private CrosshairDesign Design => selectedPreset.Design;
+
+    private LayerStyle CurrentStyle => SelectedLayer switch
+    {
+        ClassicLayer classic => LayerStyle.From(classic.Settings),
+        ShapeLayer shape => shape.Style,
+        _ => new LayerStyle(),
+    };
+
+    private void EditStyle(LayerStyle style)
+    {
+        switch (SelectedLayer)
+        {
+            case ClassicLayer classic:
+                EditLayer(classic with { Settings = style.ApplyTo(classic.Settings) });
+                break;
+            case ShapeLayer shape:
+                EditLayer(shape with { Style = style });
+                break;
+            default:
+                OnPropertyChanged(string.Empty);
+                break;
+        }
+    }
 
     public void AddClassicLayer() => AddLayer(new ClassicLayer());
 
@@ -223,11 +247,22 @@ internal sealed partial class MainViewModel
 
     private static string LayerTitle(CrosshairLayer layer) => layer switch
     {
+        ShapeLayer shape => ShapeName(shape.Kind),
         _ => Loc.T("LayerClassic"),
+    };
+
+    private static string ShapeName(ShapeKind kind) => kind switch
+    {
+        ShapeKind.Rectangle => Loc.T("ShapeRectangle"),
+        ShapeKind.Chevron => Loc.T("ShapeChevron"),
+        ShapeKind.Arc => Loc.T("ShapeArc"),
+        ShapeKind.TShape => Loc.T("ShapeTShape"),
+        _ => Loc.T("ShapeTriangle"),
     };
 
     private static string LayerGlyph(CrosshairLayer layer) => layer switch
     {
+        ShapeLayer => ShapeGlyph,
         _ => ClassicGlyph,
     };
 }

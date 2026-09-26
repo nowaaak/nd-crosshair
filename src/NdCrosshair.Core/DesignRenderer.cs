@@ -26,8 +26,33 @@ public static class DesignRenderer
             classic,
             CrosshairRenderer.RasterizeClassic(CrosshairRenderer.Transform(classic.Settings, classic.Scale, spread)),
             new LayerColoring(classic.Settings.Color, classic.Settings.ColorMode, classic.Settings.RainbowSpeed)),
+        ShapeLayer shape => Place(shape, RasterizeShape(shape), Coloring(shape.Style)),
         _ => null,
     };
+
+    private static LayerColoring Coloring(LayerStyle style) => new(style.Color, style.ColorMode, style.RainbowSpeed);
+
+    private static LayerRaster RasterizeShape(ShapeLayer shape)
+    {
+        var contours = ShapeGeometry.Build(shape, shape.Scale / 100.0);
+        var style = shape.Style;
+        var outline = style.ShowOutline ? style.OutlineThickness : 0;
+        var shadow = style.ShowShadow ? style.ShadowSize : 0;
+        var fill = new PolygonShape(contours, 0);
+        var grown = outline > 0 ? new PolygonShape(contours, outline) : fill;
+
+        var origin = grown.Bounds.MaxExtent + shadow;
+        var size = origin * 2 + 1;
+        return LayerRaster.FromCoverage(
+            size,
+            SuperSampler.Rasterize([fill], size, origin),
+            outline > 0 ? SuperSampler.Rasterize([grown], size, origin) : null,
+            style.Opacity,
+            style.OutlineColor,
+            shadow,
+            style.ShadowOpacity,
+            style.ShadowColor);
+    }
 
     private static PlacedLayer Place(CrosshairLayer layer, LayerRaster raster, LayerColoring coloring) =>
         new(raster.Blurred(layer.Blur), layer.OffsetX, layer.OffsetY, coloring);

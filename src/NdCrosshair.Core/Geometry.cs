@@ -90,6 +90,89 @@ internal sealed class RingShape : Shape
     }
 }
 
+internal readonly record struct PointD(double X, double Y);
+
+internal sealed class PolygonShape : Shape
+{
+    private readonly PointD[][] contours;
+    private readonly double grow;
+    private readonly double growSquared;
+
+    public PolygonShape(IReadOnlyList<IReadOnlyList<PointD>> contours, double grow)
+    {
+        this.contours = contours.Select(contour => contour.ToArray()).Where(contour => contour.Length >= 3).ToArray();
+        this.grow = Math.Max(0, grow);
+        growSquared = this.grow * this.grow;
+
+        var points = this.contours.SelectMany(contour => contour).ToList();
+        Bounds = points.Count == 0
+            ? new PixelBounds(0, 0, -1, -1)
+            : PixelBounds.FromEdges(
+                points.Min(point => point.X) - this.grow,
+                points.Min(point => point.Y) - this.grow,
+                points.Max(point => point.X) + this.grow,
+                points.Max(point => point.Y) + this.grow);
+    }
+
+    public override PixelBounds Bounds { get; }
+
+    public override bool Contains(double x, double y)
+    {
+        if (IsInside(x, y))
+        {
+            return true;
+        }
+
+        return grow > 0 && IsNearEdge(x, y);
+    }
+
+    private bool IsInside(double x, double y)
+    {
+        var inside = false;
+        foreach (var contour in contours)
+        {
+            for (int i = 0, j = contour.Length - 1; i < contour.Length; j = i++)
+            {
+                var a = contour[i];
+                var b = contour[j];
+                if ((a.Y > y) != (b.Y > y) && x < (b.X - a.X) * (y - a.Y) / (b.Y - a.Y) + a.X)
+                {
+                    inside = !inside;
+                }
+            }
+        }
+
+        return inside;
+    }
+
+    private bool IsNearEdge(double x, double y)
+    {
+        foreach (var contour in contours)
+        {
+            for (int i = 0, j = contour.Length - 1; i < contour.Length; j = i++)
+            {
+                if (DistanceSquared(x, y, contour[j], contour[i]) <= growSquared)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private static double DistanceSquared(double x, double y, PointD a, PointD b)
+    {
+        var dx = b.X - a.X;
+        var dy = b.Y - a.Y;
+        var lengthSquared = dx * dx + dy * dy;
+        var t = lengthSquared == 0 ? 0 : Math.Clamp(((x - a.X) * dx + (y - a.Y) * dy) / lengthSquared, 0, 1);
+        var px = a.X + t * dx - x;
+        var py = a.Y + t * dy - y;
+        return px * px + py * py;
+    }
+}
+
 internal static class SuperSampler
 {
     private const int SamplesPerAxis = 4;
