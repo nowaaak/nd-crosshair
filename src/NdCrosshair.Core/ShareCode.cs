@@ -34,6 +34,7 @@ public static class ShareCode
 
     private const byte ExtraFlagRoundDot = 1 << 0;
     private const byte KnownExtraFlags = ExtraFlagRoundDot;
+    private const byte RemovedContrastMode = 2;
 
     public static string Encode(CrosshairSettings settings)
     {
@@ -167,7 +168,7 @@ public static class ShareCode
         var rainbowSpeed = new CrosshairSettings().RainbowSpeed;
         if (data.Length == PayloadLength)
         {
-            colorMode = (CrosshairColorMode)data[22];
+            colorMode = data[22] == RemovedContrastMode ? CrosshairColorMode.Static : (CrosshairColorMode)data[22];
             rainbowSpeed = data[23];
             if (!Enum.IsDefined(colorMode))
             {

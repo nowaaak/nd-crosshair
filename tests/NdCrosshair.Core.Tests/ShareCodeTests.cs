@@ -29,7 +29,7 @@ public class ShareCodeTests
         ShadowSize = 9,
         ShadowOpacity = 42,
         ShadowColor = new CrosshairColor(9, 8, 7),
-        ColorMode = CrosshairColorMode.Adaptive,
+        ColorMode = CrosshairColorMode.Rainbow,
         RainbowSpeed = 7,
     };
 
@@ -42,6 +42,21 @@ public class ShareCodeTests
         Assert.True(ShareCode.TryDecode(code, out var decoded, out var error));
         Assert.Equal(ShareCodeError.None, error);
         Assert.Equal(Custom, decoded);
+    }
+
+    [Fact]
+    public void TryDecode_WithRemovedContrastMode_FallsBackToStatic()
+    {
+        const byte removedContrastMode = 2;
+        var body = ShareCode.Encode(Custom)[ShareCode.Prefix.Length..].Replace('-', '+').Replace('_', '/');
+        var data = Convert.FromBase64String(body.PadRight(body.Length + (4 - body.Length % 4) % 4, '='));
+        data[22] = removedContrastMode;
+        data[^1] = ShareCode.Crc8(data.AsSpan(0, data.Length - 1));
+        var code = ShareCode.Prefix + Convert.ToBase64String(data).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+
+        Assert.True(ShareCode.TryDecode(code, out var decoded, out var error));
+        Assert.Equal(ShareCodeError.None, error);
+        Assert.Equal(Custom with { ColorMode = CrosshairColorMode.Static }, decoded);
     }
 
     [Fact]

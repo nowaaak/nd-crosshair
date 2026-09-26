@@ -98,10 +98,7 @@
                                         <RadioButton Style="{StaticResource SegmentButton}" GroupName="ColorMode" Content="{l:T ModeStatic}"
                                                      IsChecked="{Binding ColorMode, Converter={StaticResource EnumMatch}, ConverterParameter=Static}" />
                                         <RadioButton Style="{StaticResource SegmentButton}" GroupName="ColorMode" Content="{l:T ModeRainbow}"
-                                                     IsChecked="{Binding ColorMode, Converter={StaticResource EnumMatch}, ConverterParameter=Rainbow}" />
-                                        <RadioButton Style="{StaticResource SegmentButton}" GroupName="ColorMode" Content="{l:T ModeAdaptive}"
-                                                     IsChecked="{Binding ColorMode, Converter={StaticResource EnumMatch}, ConverterParameter=Adaptive}" />
-                                    </StackPanel>
+                                                     IsChecked="{Binding ColorMode, Converter={StaticResource EnumMatch}, ConverterParameter=Rainbow}" />                                    </StackPanel>
                                 </Border>
                                 <TextBlock Text="{l:T ModeStaticDescription}" Style="{StaticResource SecondaryText}" TextWrapping="Wrap" Margin="0,12,0,0"
                                            Visibility="{Binding ColorMode, Converter={StaticResource EnumVisibility}, ConverterParameter=Static}" />
@@ -110,16 +107,6 @@
                                     <app:SettingSlider Label="{l:T Speed}" Value="{Binding RainbowSpeed}"
                                                        Minimum="{x:Static core:CrosshairSettings.MinRainbowSpeed}"
                                                        Maximum="{x:Static core:CrosshairSettings.MaxRainbowSpeed}" />
-                                </StackPanel>
-                                <StackPanel Visibility="{Binding ColorMode, Converter={StaticResource EnumVisibility}, ConverterParameter=Adaptive}">
-                                    <TextBlock Text="{l:T ModeAdaptiveDescription}" Style="{StaticResource SecondaryText}" TextWrapping="Wrap" Margin="0,12,0,10" />
-                                    <Border CornerRadius="6" Background="#1FFCE100" BorderBrush="#66FCE100" BorderThickness="1" Padding="12,10">
-                                        <DockPanel>
-                                            <TextBlock DockPanel.Dock="Left" Text="&#xE7BA;" FontFamily="{StaticResource IconFont}" FontSize="16"
-                                                       Foreground="{StaticResource WarningBrush}" Margin="0,1,10,0" />
-                                            <TextBlock Text="{l:T ModeAdaptiveWarning}" TextWrapping="Wrap" FontSize="12" />
-                                        </DockPanel>
-                                    </Border>
                                 </StackPanel>
                             </StackPanel>
                         </GroupBox>

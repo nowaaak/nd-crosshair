@@ -244,6 +244,31 @@ public sealed class ConfigStoreTests : IDisposable
         Assert.Equal("{}", File.ReadAllText(FilePath));
     }
 
+    [Theory]
+    [InlineData("\"adaptive\"")]
+    [InlineData("\"Adaptive\"")]
+    [InlineData("2")]
+    public void Load_WithRemovedContrastMode_FallsBackToStatic(string colorMode)
+    {
+        Directory.CreateDirectory(directory);
+        File.WriteAllText(FilePath, $$"""{ "presets": [ { "name": "Alt", "settings": { "colorMode": {{colorMode}}, "gap": 7 } } ] }""");
+
+        var result = new ConfigStore(FilePath).Load();
+
+        Assert.Equal(ConfigLoadStatus.Loaded, result.Status);
+        Assert.Equal(CrosshairColorMode.Static, result.Config.Presets[0].Settings.ColorMode);
+        Assert.Equal(7, result.Config.Presets[0].Settings.Gap);
+    }
+
+    [Fact]
+    public void Load_WithInvalidColorModeToken_TreatsFileAsCorrupt()
+    {
+        Directory.CreateDirectory(directory);
+        File.WriteAllText(FilePath, """{ "presets": [ { "name": "x", "settings": { "colorMode": { } } } ] }""");
+
+        Assert.Equal(ConfigLoadStatus.RecoveredFromCorruptFile, new ConfigStore(FilePath).Load().Status);
+    }
+
     [Fact]
     public void Load_WithEmptyPresetList_AddsDefaultPreset()
     {

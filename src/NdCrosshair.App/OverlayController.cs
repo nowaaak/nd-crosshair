@@ -20,14 +20,11 @@ internal sealed record OverlayOptions(
 internal sealed class OverlayController : IDisposable
 {
     private static readonly TimeSpan RainbowInterval = TimeSpan.FromMilliseconds(33);
-    private static readonly TimeSpan AdaptiveInterval = TimeSpan.FromMilliseconds(100);
     private static readonly TimeSpan ForegroundInterval = TimeSpan.FromMilliseconds(250);
     private static readonly TimeSpan AimInterval = TimeSpan.FromMilliseconds(10);
 
     private readonly OverlayWindow window = new();
-    private readonly ScreenSampler sampler = new();
     private readonly DispatcherTimer rainbowTimer;
-    private readonly DispatcherTimer adaptiveTimer;
     private readonly DispatcherTimer foregroundTimer;
     private readonly DispatcherTimer aimTimer;
     private readonly Stopwatch clock = Stopwatch.StartNew();
@@ -35,7 +32,6 @@ internal sealed class OverlayController : IDisposable
     private OverlayOptions? options;
     private CrosshairSettings? rasterizedSettings;
     private CrosshairLayers? layers;
-    private AdaptiveColorSelector? adaptive;
     private CrosshairColor? currentFill;
     private bool gameInForeground = true;
     private GameRule? detectedRule;
@@ -47,11 +43,9 @@ internal sealed class OverlayController : IDisposable
     {
         var dispatcher = Dispatcher.CurrentDispatcher;
         rainbowTimer = new DispatcherTimer(RainbowInterval, DispatcherPriority.Render, (_, _) => OnRainbowTick(), dispatcher);
-        adaptiveTimer = new DispatcherTimer(AdaptiveInterval, DispatcherPriority.Background, (_, _) => OnAdaptiveTick(), dispatcher);
         foregroundTimer = new DispatcherTimer(ForegroundInterval, DispatcherPriority.Background, (_, _) => OnForegroundTick(), dispatcher);
         aimTimer = new DispatcherTimer(AimInterval, DispatcherPriority.Render, (_, _) => OnAimTick(), dispatcher);
         rainbowTimer.Stop();
-        adaptiveTimer.Stop();
         foregroundTimer.Stop();
         aimTimer.Stop();
         window.RenderFailed += (_, _) => RenderFailed?.Invoke(this, EventArgs.Empty);
@@ -72,11 +66,6 @@ internal sealed class OverlayController : IDisposable
         if (layers is null || rasterizedSettings != settings)
         {
             layers = CrosshairRenderer.Rasterize(settings);
-            if (rasterizedSettings?.Color != settings.Color || rasterizedSettings?.ColorMode != settings.ColorMode)
-            {
-                adaptive = new AdaptiveColorSelector(settings.Color);
-            }
-
             rasterizedSettings = settings;
             currentFill = null;
         }
@@ -120,11 +109,9 @@ internal sealed class OverlayController : IDisposable
     public void Dispose()
     {
         rainbowTimer.Stop();
-        adaptiveTimer.Stop();
         foregroundTimer.Stop();
         aimTimer.Stop();
         window.Dispose();
-        sampler.Dispose();
     }
 
     private void UpdateVisibility()
@@ -146,7 +133,6 @@ internal sealed class OverlayController : IDisposable
 
         var mode = rasterizedSettings?.ColorMode ?? CrosshairColorMode.Static;
         SetTimer(rainbowTimer, shown && mode == CrosshairColorMode.Rainbow);
-        SetTimer(adaptiveTimer, shown && mode == CrosshairColorMode.Adaptive);
         SetTimer(aimTimer, aimWatched);
         SetTimer(foregroundTimer, (options.Visible && options.ShowOnlyOverGame) || options.GameRules.Any(rule => rule.PresetId is not null));
     }
@@ -161,7 +147,6 @@ internal sealed class OverlayController : IDisposable
         var fill = rasterizedSettings.ColorMode switch
         {
             CrosshairColorMode.Rainbow => RainbowColor(rasterizedSettings),
-            CrosshairColorMode.Adaptive => adaptive?.Current ?? rasterizedSettings.Color,
             _ => rasterizedSettings.Color,
         };
 
@@ -183,20 +168,6 @@ internal sealed class OverlayController : IDisposable
     }
 
     private void OnRainbowTick() => UpdateFill(force: false);
-
-    private void OnAdaptiveTick()
-    {
-        if (adaptive is null || window.Bounds is not { } bounds)
-        {
-            return;
-        }
-
-        if (sampler.SampleAround(bounds) is { } background)
-        {
-            adaptive.Update(background);
-            UpdateFill(force: false);
-        }
-    }
 
     private void OnForegroundTick()
     {

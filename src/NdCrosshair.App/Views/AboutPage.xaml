@@ -29,7 +29,6 @@
                     <StackPanel>
                         <TextBlock Text="{l:T SafetyNoAccess}" TextWrapping="Wrap" Margin="0,0,0,8" />
                         <TextBlock Text="{l:T SafetyNoHooks}" TextWrapping="Wrap" Margin="0,0,0,8" />
-                        <TextBlock Text="{l:T SafetyAdaptive}" TextWrapping="Wrap" Margin="0,0,0,8" />
                         <TextBlock Text="{l:T SafetyRules}" Style="{StaticResource SecondaryText}" TextWrapping="Wrap" />
                     </StackPanel>
                 </Border>

@@ -37,12 +37,6 @@ internal static unsafe partial class Gdi32
     [return: MarshalAs(UnmanagedType.Bool)]
     public static partial bool DeleteObject(nint ho);
 
-    public const uint SRCCOPY = 0x00CC0020;
-
-    [LibraryImport("gdi32.dll", SetLastError = true)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    public static partial bool BitBlt(nint hdc, int x, int y, int cx, int cy, nint hdcSrc, int x1, int y1, uint rop);
-
     [LibraryImport("gdi32.dll", SetLastError = true)]
     public static partial nint CreateDIBSection(
         nint hdc,

@@ -4,5 +4,4 @@ public enum CrosshairColorMode
 {
     Static,
     Rainbow,
-    Adaptive,
 }

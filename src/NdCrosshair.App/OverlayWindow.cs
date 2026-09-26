@@ -73,8 +73,6 @@ internal sealed unsafe class OverlayWindow : IDisposable
 
     public event EventHandler? RenderFailed;
 
-    public ScreenRect? Bounds { get; private set; }
-
     public void SetPlacement(string? deviceName, int x, int y)
     {
         ObjectDisposedException.ThrowIf(disposed, this);
@@ -215,13 +213,7 @@ internal sealed unsafe class OverlayWindow : IDisposable
             AlphaFormat = User32.AC_SRC_ALPHA,
         };
 
-        if (!User32.UpdateLayeredWindow(hwnd, 0, &destination, &extent, surface.DeviceContext, &source, 0, &blend, User32.ULW_ALPHA))
-        {
-            return false;
-        }
-
-        Bounds = new ScreenRect(destination.X, destination.Y, size, size);
-        return true;
+        return User32.UpdateLayeredWindow(hwnd, 0, &destination, &extent, surface.DeviceContext, &source, 0, &blend, User32.ULW_ALPHA);
     }
 
     private void RefreshMonitor()

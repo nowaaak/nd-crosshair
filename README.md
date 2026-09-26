@@ -12,7 +12,6 @@ A free, open source crosshair overlay for Windows. It draws a fully customizable
 - Color modes:
   - **Fixed**: always uses the selected color
   - **Rainbow**: smooth color cycling with adjustable speed
-  - **Contrast**: keeps your color while it stays visible and switches to a high-contrast color when it blends into the background (color distance in CIE Lab with hysteresis to prevent flicker)
 - Anti-aliasing through 4×4 supersampling. Straight edges stay pixel sharp.
 - Live preview on four backgrounds (dark, light, sky, forest)
 - A hint when dot size and line thickness have different parity, which puts the dot half a pixel off center
@@ -83,14 +82,14 @@ Pushing a tag like `v1.0.0` runs the release workflow. It tests, builds both var
 - The overlay never touches the game process. It does not open a handle to the game, read memory, inject code, install keyboard or mouse hooks, access the network or require admin rights.
 - To detect games, the app reads the foreground window's title and the process name from the Windows process list (`CreateToolhelp32Snapshot`), just like Task Manager. The list is only read when a different window comes to the foreground.
 - "Hide while aiming" polls the state of the selected mouse button about a hundred times per second (`GetAsyncKeyState`). This is not a hook and does not change any input. Polling only runs while the feature is enabled and the overlay is visible.
-- The only exception is the **Contrast** color mode: it reads a small frame of the screen around the crosshair about ten times per second (`BitBlt`). The game itself is not accessed, but there is no guarantee that anti-cheat systems will always tolerate this. The mode is off by default.
+- The app never reads pixels from the screen. The old **Contrast** color mode, which sampled the screen around the crosshair, has been removed. Presets and share codes that still use it fall back to **Fixed**.
 - Game publishers can change their rules at any time. No overlay tool can guarantee that you will never be banned. Use it at your own risk and check the rules of competitive events.
 - Hotkeys are registered system-wide. The game no longer receives keys that are assigned here.
 
 ## Project structure
 
-- `src/NdCrosshair.Core`: settings, renderer (rasterization and coloring are separate), color math, adaptive color selection, share codes, CS2 and Valorant code import, game rules, hotkey conflicts, configuration with export, import and migration, translations. No Windows dependencies, covered by tests.
-- `src/NdCrosshair.App`: WPF interface (`Views`, `Controls`, `Theme.xaml`), the overlay as a native Win32 layered window, `OverlayController` for color modes and visibility, and services for screen sampling, foreground detection, autostart and notifications.
+- `src/NdCrosshair.Core`: settings, renderer (rasterization and coloring are separate), color math, share codes, CS2 and Valorant code import, game rules, hotkey conflicts, configuration with export, import and migration, translations. No Windows dependencies, covered by tests.
+- `src/NdCrosshair.App`: WPF interface (`Views`, `Controls`, `Theme.xaml`), the overlay as a native Win32 layered window, `OverlayController` for color modes and visibility, and services for foreground detection, mouse button state, autostart and notifications.
 - `tests/NdCrosshair.Core.Tests`: xUnit tests, including a check that every translation key used in the app exists in both languages.
 
 ## Roadmap ideas

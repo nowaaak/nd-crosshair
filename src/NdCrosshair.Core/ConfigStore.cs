@@ -23,7 +23,7 @@ public sealed class ConfigStore
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = true,
-        Converters = { new CrosshairColorJsonConverter(), new JsonStringEnumConverter() },
+        Converters = { new CrosshairColorJsonConverter(), new ColorModeJsonConverter(), new JsonStringEnumConverter() },
     };
 
     public ConfigStore(string filePath)
@@ -153,5 +153,22 @@ public sealed class ConfigStore
 
         public override void Write(Utf8JsonWriter writer, CrosshairColor value, JsonSerializerOptions options) =>
             writer.WriteStringValue(value.ToHex());
+    }
+
+    private sealed class ColorModeJsonConverter : JsonConverter<CrosshairColorMode>
+    {
+        public override CrosshairColorMode Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+            reader.TokenType switch
+            {
+                JsonTokenType.String when Enum.TryParse<CrosshairColorMode>(reader.GetString(), ignoreCase: true, out var mode)
+                    && Enum.IsDefined(mode) => mode,
+                JsonTokenType.Number when reader.TryGetInt32(out var number)
+                    && Enum.IsDefined((CrosshairColorMode)number) => (CrosshairColorMode)number,
+                JsonTokenType.String or JsonTokenType.Number => CrosshairColorMode.Static,
+                _ => throw new JsonException("Invalid color mode."),
+            };
+
+        public override void Write(Utf8JsonWriter writer, CrosshairColorMode value, JsonSerializerOptions options) =>
+            writer.WriteStringValue(value.ToString());
     }
 }

@@ -53,14 +53,6 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
     private const double PreviewTargetSize = 240;
     private const int MaxPreviewZoom = 12;
 
-    private static readonly IReadOnlyDictionary<PreviewScene, CrosshairColor> SceneColors = new Dictionary<PreviewScene, CrosshairColor>
-    {
-        [PreviewScene.Dark] = new(22, 25, 29),
-        [PreviewScene.Light] = new(228, 231, 234),
-        [PreviewScene.Sky] = new(134, 183, 232),
-        [PreviewScene.Forest] = new(62, 106, 54),
-    };
-
     private PresetItem selectedPreset = null!;
     private AppPage currentPage;
     private DesignTab designTab;
@@ -106,15 +98,7 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
     public PreviewScene PreviewScene
     {
         get => previewScene;
-        set
-        {
-            if (SetField(ref previewScene, value))
-            {
-                RenderPreview();
-                OnPropertyChanged(nameof(PreviewImage));
-                OnPropertyChanged(nameof(PreviewZoomedSize));
-            }
-        }
+        set => SetField(ref previewScene, value);
     }
 
     public BitmapSource PreviewImage { get; private set; } = null!;
@@ -134,7 +118,6 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
     public string PreviewModeHint => Current.ColorMode switch
     {
         CrosshairColorMode.Rainbow => Loc.T("PreviewHintRainbow"),
-        CrosshairColorMode.Adaptive => Loc.T("PreviewHintAdaptive"),
         _ => string.Empty,
     };
 
@@ -583,10 +566,7 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
     private void RenderPreview()
     {
         var layers = CrosshairRenderer.Rasterize(Current);
-        var fill = Current.ColorMode == CrosshairColorMode.Adaptive
-            ? AdaptiveColorSelector.Choose(Current.Color, SceneColors[previewScene])
-            : Current.Color;
-        var image = layers.Compose(fill);
+        var image = layers.Compose(Current.Color);
         IsCrosshairEmpty = !image.Pixels.Where((_, index) => index % CrosshairImage.BytesPerPixel == 3).Any(alpha => alpha > 0);
         PreviewImage = CrosshairBitmaps.ToBitmapSource(image);
         PreviewZoom = Math.Clamp((int)(PreviewTargetSize / layers.Size), 1, MaxPreviewZoom);

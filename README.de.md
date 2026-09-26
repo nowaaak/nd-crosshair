@@ -12,7 +12,6 @@ Kostenloses, quelloffenes Crosshair-Overlay für Windows. Es legt ein frei gesta
 - Farbmodi:
   - **Fest**: immer die gewählte Farbe
   - **Regenbogen**: fließender Farbwechsel mit einstellbarem Tempo
-  - **Kontrast**: behält die eigene Farbe, solange sie sichtbar ist, und wechselt automatisch zu einer kontrastreichen Farbe, wenn sie im Hintergrund untergeht (Farbabstand in CIE-Lab mit Hysterese gegen Flackern)
 - Kantenglättung per 4×4-Supersampling. Gerade Kanten bleiben pixelscharf.
 - Live-Vorschau auf vier Hintergründen (Dunkel, Hell, Himmel, Wald)
 - Hinweis, wenn Punktgröße und Linienstärke unterschiedliche Parität haben und der Punkt deshalb einen halben Pixel versetzt sitzt
@@ -83,14 +82,14 @@ Ein Tag wie `v1.0.0` startet den Release-Workflow. Er testet, baut beide Variant
 - Das Overlay greift nicht auf den Spielprozess zu. Es öffnet kein Handle auf das Spiel, liest keinen Speicher, injiziert nichts, nutzt keine Tastatur- oder Maus-Hooks und braucht weder Netzwerk noch Admin-Rechte.
 - Zur Spielerkennung liest die App den Titel des Vordergrundfensters und den Prozessnamen aus der Windows-Prozessliste (`CreateToolhelp32Snapshot`), so wie der Task-Manager. Die Liste wird nur gelesen, wenn ein anderes Fenster in den Vordergrund kommt.
 - "Beim Zielen ausblenden" fragt etwa hundertmal pro Sekunde den Zustand der gewählten Maustaste ab (`GetAsyncKeyState`). Das ist kein Hook und verändert keine Eingaben. Die Abfrage läuft nur, solange die Funktion aktiv und das Overlay sichtbar ist.
-- Einzige Ausnahme ist der Farbmodus **Kontrast**: Er liest etwa zehnmal pro Sekunde einen kleinen Rahmen des Bildschirms rund um das Crosshair (`BitBlt`). Das Spiel wird dabei nicht angefasst. Ob Anti-Cheat-Systeme das dauerhaft tolerieren, ist nicht garantiert. Der Modus ist standardmäßig aus.
+- Die App liest keine Pixel vom Bildschirm. Der frühere Farbmodus **Kontrast**, der den Bildschirm rund um das Crosshair abgetastet hat, wurde entfernt. Presets und Share-Codes, die ihn noch nutzen, fallen auf **Fest** zurück.
 - Epic hat Crosshair-Overlays bisher weder ausdrücklich erlaubt noch verboten. Eine Garantie gegen künftige Regeländerungen gibt es nicht, auch nicht bei gekauften Tools.
 - Hotkeys werden systemweit reserviert. Das Spiel erhält belegte Tasten nicht mehr.
 
 ## Aufbau
 
-- `src/NdCrosshair.Core`: Einstellungen, Renderer (Rastern und Einfärben getrennt), Farbmathematik, adaptive Farbwahl, Share-Code, Import von CS2- und Valorant-Codes, Spielregeln, Hotkey-Konflikte, Konfiguration mit Export/Import und Migration, Übersetzungen. Ohne Windows-Abhängigkeit, getestet.
-- `src/NdCrosshair.App`: WPF-Oberfläche (`Views`, `Controls`, `Theme.xaml`), Overlay als natives Win32-Layered-Window, `OverlayController` für Farbmodi und Sichtbarkeit, Dienste für Bildschirm-Sampling, Vordergrundfenster, Autostart und Benachrichtigungen.
+- `src/NdCrosshair.Core`: Einstellungen, Renderer (Rastern und Einfärben getrennt), Farbmathematik, Share-Code, Import von CS2- und Valorant-Codes, Spielregeln, Hotkey-Konflikte, Konfiguration mit Export/Import und Migration, Übersetzungen. Ohne Windows-Abhängigkeit, getestet.
+- `src/NdCrosshair.App`: WPF-Oberfläche (`Views`, `Controls`, `Theme.xaml`), Overlay als natives Win32-Layered-Window, `OverlayController` für Farbmodi und Sichtbarkeit, Dienste für Vordergrundfenster, Maustastenstatus, Autostart und Benachrichtigungen.
 - `tests/NdCrosshair.Core.Tests`: xUnit-Tests, inklusive Prüfung, dass jeder in der App verwendete Übersetzungsschlüssel in beiden Sprachen existiert.
 
 ## Mögliche Erweiterungen
