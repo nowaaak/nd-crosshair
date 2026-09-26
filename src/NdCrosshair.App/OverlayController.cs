@@ -27,11 +27,16 @@ internal sealed class OverlayController : IDisposable
     private readonly DispatcherTimer rainbowTimer;
     private readonly DispatcherTimer foregroundTimer;
     private readonly DispatcherTimer aimTimer;
+    private readonly DispatcherTimer fireTimer;
+    private readonly FireSpreadAnimator spreadAnimator = new();
+    private readonly Dictionary<int, RasterizedDesign> spreadCache = [];
     private readonly Stopwatch clock = Stopwatch.StartNew();
 
     private OverlayOptions? options;
     private CrosshairDesign? rasterizedDesign;
     private RasterizedDesign? rasterized;
+    private int currentSpread;
+    private TimeSpan lastFireTick;
     private bool gameInForeground = true;
     private GameRule? detectedRule;
     private bool aimHidden;
@@ -44,9 +49,11 @@ internal sealed class OverlayController : IDisposable
         rainbowTimer = new DispatcherTimer(RainbowInterval, DispatcherPriority.Render, (_, _) => OnRainbowTick(), dispatcher);
         foregroundTimer = new DispatcherTimer(ForegroundInterval, DispatcherPriority.Background, (_, _) => OnForegroundTick(), dispatcher);
         aimTimer = new DispatcherTimer(AimInterval, DispatcherPriority.Render, (_, _) => OnAimTick(), dispatcher);
+        fireTimer = new DispatcherTimer(AimInterval, DispatcherPriority.Render, (_, _) => OnFireTick(), dispatcher);
         rainbowTimer.Stop();
         foregroundTimer.Stop();
         aimTimer.Stop();
+        fireTimer.Stop();
         window.RenderFailed += (_, _) => RenderFailed?.Invoke(this, EventArgs.Empty);
     }
 
@@ -63,8 +70,11 @@ internal sealed class OverlayController : IDisposable
         var design = next.Design.Normalize();
         if (rasterized is null || rasterizedDesign != design)
         {
-            rasterized = DesignRenderer.Rasterize(design);
             rasterizedDesign = design;
+            spreadCache.Clear();
+            spreadAnimator.Reset();
+            currentSpread = 0;
+            rasterized = RasterFor(currentSpread);
         }
 
         if (previous is null
@@ -108,6 +118,7 @@ internal sealed class OverlayController : IDisposable
         rainbowTimer.Stop();
         foregroundTimer.Stop();
         aimTimer.Stop();
+        fireTimer.Stop();
         window.Dispose();
     }
 
@@ -130,6 +141,7 @@ internal sealed class OverlayController : IDisposable
 
         SetTimer(rainbowTimer, shown && rasterized?.IsAnimated == true);
         SetTimer(aimTimer, aimWatched);
+        SetFireTimer(shown && rasterizedDesign?.FireSpread > 0);
         SetTimer(foregroundTimer, (options.Visible && options.ShowOnlyOverGame) || options.GameRules.Any(rule => rule.PresetId is not null));
     }
 
@@ -142,6 +154,59 @@ internal sealed class OverlayController : IDisposable
     }
 
     private void OnRainbowTick() => Redraw();
+
+    private RasterizedDesign RasterFor(int spread)
+    {
+        if (!spreadCache.TryGetValue(spread, out var raster))
+        {
+            raster = DesignRenderer.Rasterize(rasterizedDesign ?? new CrosshairDesign(), spread);
+            spreadCache[spread] = raster;
+        }
+
+        return raster;
+    }
+
+    private void SetFireTimer(bool enabled)
+    {
+        if (enabled && !fireTimer.IsEnabled)
+        {
+            lastFireTick = clock.Elapsed;
+        }
+
+        SetTimer(fireTimer, enabled);
+        if (!enabled && currentSpread != 0)
+        {
+            spreadAnimator.Reset();
+            ShowSpread(0);
+        }
+    }
+
+    private void OnFireTick()
+    {
+        if (rasterizedDesign is not { } design)
+        {
+            return;
+        }
+
+        var now = clock.Elapsed;
+        var elapsed = (now - lastFireTick).TotalSeconds;
+        lastFireTick = now;
+
+        var firing = MouseButtonState.IsPrimaryPressed() && !ForegroundWindow.IsOwnProcessActive();
+        ShowSpread(spreadAnimator.Update(firing, elapsed, design.FireSpread, design.FireRecovery));
+    }
+
+    private void ShowSpread(int spread)
+    {
+        if (spread == currentSpread)
+        {
+            return;
+        }
+
+        currentSpread = spread;
+        rasterized = RasterFor(spread);
+        Redraw();
+    }
 
     private void OnForegroundTick()
     {

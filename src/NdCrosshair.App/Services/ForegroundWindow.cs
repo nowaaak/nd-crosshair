@@ -30,6 +30,19 @@ internal static unsafe class ForegroundWindow
         return new ForegroundInfo(title, isOwnProcess ? null : ProcessName(processId), isOwnProcess);
     }
 
+    public static bool IsOwnProcessActive()
+    {
+        var handle = User32.GetForegroundWindow();
+        if (handle == 0)
+        {
+            return false;
+        }
+
+        uint processId;
+        User32.GetWindowThreadProcessId(handle, &processId);
+        return processId == Environment.ProcessId;
+    }
+
     public static GameRule? FindRule(ForegroundInfo? foreground, IReadOnlyList<GameRule> rules) =>
         foreground is { IsOwnProcess: false } info
             ? rules.FirstOrDefault(rule => rule.Matches(info.ProcessName, info.Title))

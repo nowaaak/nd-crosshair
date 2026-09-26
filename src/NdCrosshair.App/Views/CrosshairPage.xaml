@@ -156,7 +156,7 @@
                             </StackPanel>
                         </GroupBox>
 
-                        <GroupBox Margin="0">
+                        <GroupBox>
                             <GroupBox.Header>
                                 <DockPanel>
                                     <CheckBox DockPanel.Dock="Right" Style="{StaticResource SwitchCheckBox}" Margin="0"
@@ -172,6 +172,19 @@
                                                    Minimum="{x:Static core:CrosshairSettings.MinShadowOpacity}"
                                                    Maximum="{x:Static core:CrosshairSettings.MaxShadowOpacity}" />
                                 <app:ColorField Label="{l:T ColorLabel}" Hex="{Binding ShadowColorHex}" />
+                            </StackPanel>
+                        </GroupBox>
+
+                        <GroupBox Header="{l:T CardFireSpread}" Margin="0">
+                            <StackPanel>
+                                <app:SettingSlider Label="{l:T FireSpread}" Value="{Binding FireSpread}"
+                                                   Minimum="{x:Static core:CrosshairDesign.MinFireSpread}"
+                                                   Maximum="{x:Static core:CrosshairDesign.MaxFireSpread}" />
+                                <app:SettingSlider Label="{l:T FireRecovery}" Value="{Binding FireRecovery}"
+                                                   Minimum="{x:Static core:CrosshairDesign.MinFireRecovery}"
+                                                   Maximum="{x:Static core:CrosshairDesign.MaxFireRecovery}" />
+                                <TextBlock Text="{l:T FireSpreadHint}" Style="{StaticResource SecondaryText}" FontSize="12"
+                                           TextWrapping="Wrap" Margin="0,6,0,0" />
                             </StackPanel>
                         </GroupBox>
                     </StackPanel>

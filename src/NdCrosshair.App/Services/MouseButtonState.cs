@@ -7,6 +7,9 @@ internal static class MouseButtonState
 {
     private const int PressedMask = 0x8000;
 
+    public static bool IsPrimaryPressed() =>
+        (User32.GetAsyncKeyState(User32.GetSystemMetrics(User32.SM_SWAPBUTTON) != 0 ? User32.VK_RBUTTON : User32.VK_LBUTTON) & PressedMask) != 0;
+
     public static bool IsPressed(AimButton button)
     {
         var virtualKey = button switch

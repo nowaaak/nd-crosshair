@@ -64,6 +64,18 @@ internal sealed partial class MainViewModel
         set => EditLayer(SelectedLayer with { Blur = value });
     }
 
+    public int FireSpread
+    {
+        get => Design.FireSpread;
+        set => EditDesign(Design with { FireSpread = value });
+    }
+
+    public int FireRecovery
+    {
+        get => Design.FireRecovery;
+        set => EditDesign(Design with { FireRecovery = value });
+    }
+
     public int MinLayerOffset => -CrosshairLayer.MaxOffset;
 
     public int MaxLayerOffset => CrosshairLayer.MaxOffset;
@@ -124,6 +136,18 @@ internal sealed partial class MainViewModel
         }
 
         ApplyDesign(Design.WithLayer(selectedLayerIndex, normalized));
+    }
+
+    private void EditDesign(CrosshairDesign updated)
+    {
+        var normalized = updated.Normalize();
+        if (normalized == Design)
+        {
+            OnPropertyChanged(string.Empty);
+            return;
+        }
+
+        ApplyDesign(normalized);
     }
 
     private void ApplyDesign(CrosshairDesign design)
