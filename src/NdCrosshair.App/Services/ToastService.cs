@@ -18,12 +18,14 @@ internal sealed class ToastService : IDisposable
         current = this;
     }
 
+    public string? MonitorDeviceName { get; set; }
+
     public static void ShowGlobal(string message) => current?.Show(message);
 
     public void Show(string message, TimeSpan? duration = null)
     {
         window ??= CreateWindow();
-        window.Show(message);
+        window.Show(message, MonitorDeviceName);
 
         hideTimer.Stop();
         hideTimer.Interval = duration ?? DefaultDuration;

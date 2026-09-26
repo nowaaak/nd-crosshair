@@ -3,7 +3,7 @@ using NdCrosshair.App.Native;
 
 namespace NdCrosshair.App;
 
-internal sealed record DisplayMonitor(string DeviceName, int Left, int Top, int Width, int Height, bool IsPrimary)
+internal sealed record DisplayMonitor(string DeviceName, int Left, int Top, int Width, int Height, bool IsPrimary, ScreenRect WorkArea)
 {
     public int CenterX => Left + Width / 2;
 
@@ -47,13 +47,15 @@ internal static unsafe class DisplayMonitors
         if (User32.GetMonitorInfo(monitor, &info) && GCHandle.FromIntPtr(data).Target is List<DisplayMonitor> monitors)
         {
             var rect = info.RcMonitor;
+            var work = info.RcWork;
             monitors.Add(new DisplayMonitor(
                 new string(info.SzDevice),
                 rect.Left,
                 rect.Top,
                 rect.Right - rect.Left,
                 rect.Bottom - rect.Top,
-                (info.DwFlags & User32.MONITORINFOF_PRIMARY) != 0));
+                (info.DwFlags & User32.MONITORINFOF_PRIMARY) != 0,
+                new ScreenRect(work.Left, work.Top, work.Right - work.Left, work.Bottom - work.Top)));
         }
 
         return 1;

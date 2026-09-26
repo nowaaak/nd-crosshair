@@ -37,6 +37,7 @@ internal sealed class AppController : IDisposable
         tray = new TrayIcon();
         saveTimer = new DispatcherTimer(SaveDelay, DispatcherPriority.Background, (_, _) => Save(), Dispatcher.CurrentDispatcher);
         saveTimer.Stop();
+        toasts.MonitorDeviceName = viewModel.MonitorDeviceName;
 
         viewModel.Changed += OnViewModelChanged;
         hotkeys.Pressed += OnHotkeyPressed;
@@ -147,6 +148,7 @@ internal sealed class AppController : IDisposable
         if (kind.HasFlag(ChangeKind.Overlay))
         {
             overlay.Apply(viewModel.ToOverlayOptions());
+            toasts.MonitorDeviceName = viewModel.MonitorDeviceName;
         }
 
         if (kind.HasFlag(ChangeKind.Hotkey))
