@@ -128,6 +128,8 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
         ? Loc.T("PreviewScaledDown")
         : PreviewZoom > 1 ? Loc.Format("PreviewZoomed", PreviewZoom) : Loc.T("PreviewActualSize");
 
+    public bool ShowParityHint => Current.HasDotParityMismatch();
+
     public string PreviewModeHint => Current.ColorMode switch
     {
         CrosshairColorMode.Rainbow => Loc.T("PreviewHintRainbow"),

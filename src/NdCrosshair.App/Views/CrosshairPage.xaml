@@ -66,6 +66,8 @@
                                 <app:SettingSlider Label="{l:T Size}" Value="{Binding DotSize}"
                                                    Minimum="{x:Static core:CrosshairSettings.MinDotSize}"
                                                    Maximum="{x:Static core:CrosshairSettings.MaxDotSize}" />
+                                <TextBlock Text="{l:T DotParityHint}" Style="{StaticResource WarningText}" FontSize="12" TextWrapping="Wrap"
+                                           Margin="0,6,0,0" Visibility="{Binding ShowParityHint, Converter={StaticResource Visible}}" />
                             </StackPanel>
                         </GroupBox>
 

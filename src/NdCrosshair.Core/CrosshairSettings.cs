@@ -77,6 +77,12 @@ public sealed record CrosshairSettings
 
     public int Opacity { get; init; } = 100;
 
+    public bool HasDotParityMismatch() =>
+        ShowDot
+        && LineLength > 0
+        && (ShowTop || ShowBottom || ShowLeft || ShowRight)
+        && DotSize % 2 != LineThickness % 2;
+
     public CrosshairSettings Clamp() => this with
     {
         LineLength = Math.Clamp(LineLength, MinLineLength, MaxLineLength),
