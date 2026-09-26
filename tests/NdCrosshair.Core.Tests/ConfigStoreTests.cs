@@ -25,6 +25,7 @@ public sealed class ConfigStoreTests : IDisposable
         Assert.Single(result.Config.Presets);
         Assert.Equal(HotkeyBinding.Default, result.Config.Hotkey);
         Assert.True(result.Config.OverlayVisible);
+        Assert.True(result.Config.CheckForUpdates);
     }
 
     [Fact]
@@ -130,6 +131,7 @@ public sealed class ConfigStoreTests : IDisposable
             MinimizeToTray = false,
             CloseToTray = false,
             ShowPresetNotifications = false,
+            CheckForUpdates = false,
             Language = AppLanguage.English,
             NextPresetHotkey = new HotkeyBinding(HotkeyBinding.ModifierAlt, 0x78),
             PreviousPresetHotkey = new HotkeyBinding(0, 0x77),

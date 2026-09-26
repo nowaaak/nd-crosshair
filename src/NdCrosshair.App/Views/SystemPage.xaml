@@ -21,6 +21,20 @@
                               AutomationProperties.Name="{l:T StartMinimizedHeader}" />
                 </controls:SettingCard>
 
+                <TextBlock Text="{l:T SectionUpdates}" Style="{StaticResource SectionHeader}" />
+                <controls:SettingCard Glyph="&#xE777;" Header="{l:T UpdateHeader}" Description="{Binding Updates.StatusText}">
+                    <StackPanel Orientation="Horizontal" Visibility="{Binding Updates.IsSupported, Converter={StaticResource Visible}}">
+                        <Button Content="{l:T UpdateInstall}" Style="{StaticResource AccentButton}" Margin="0,0,8,0" Click="OnInstallUpdate"
+                                Visibility="{Binding Updates.CanInstall, Converter={StaticResource Visible}}" />
+                        <Button Content="{l:T UpdateCheckNow}" Click="OnCheckUpdates" IsEnabled="{Binding Updates.CanCheck}" />
+                    </StackPanel>
+                </controls:SettingCard>
+                <controls:SettingCard Glyph="&#xE895;" Header="{l:T AutoUpdateHeader}" Description="{l:T AutoUpdateDescription}"
+                                      Visibility="{Binding Updates.IsSupported, Converter={StaticResource Visible}}">
+                    <CheckBox Style="{StaticResource SwitchCheckBox}" Margin="0" IsChecked="{Binding CheckForUpdates}"
+                              AutomationProperties.Name="{l:T AutoUpdateHeader}" />
+                </controls:SettingCard>
+
                 <TextBlock Text="{l:T SectionWindow}" Style="{StaticResource SectionHeader}" />
                 <controls:SettingCard Glyph="&#xE73F;" Header="{l:T MinimizeToTrayHeader}" Description="{l:T MinimizeToTrayDescription}">
                     <CheckBox Style="{StaticResource SwitchCheckBox}" Margin="0" IsChecked="{Binding MinimizeToTray}"

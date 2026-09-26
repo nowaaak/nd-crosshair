@@ -60,9 +60,10 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
     private string importCode = string.Empty;
     private string shareStatus = string.Empty;
 
-    public MainViewModel(AppConfig config, bool startWithWindows)
+    public MainViewModel(AppConfig config, bool startWithWindows, UpdateViewModel updates)
     {
         this.startWithWindows = startWithWindows;
+        Updates = updates;
         LoadConfig(config);
         RefreshMonitors();
         RenderPreview();
@@ -444,6 +445,7 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
         MinimizeToTray = minimizeToTray,
         CloseToTray = closeToTray,
         ShowPresetNotifications = showPresetNotifications,
+        CheckForUpdates = checkForUpdates,
         Language = language,
     }.Normalize();
 
@@ -500,6 +502,7 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
         minimizeToTray = config.MinimizeToTray;
         closeToTray = config.CloseToTray;
         showPresetNotifications = config.ShowPresetNotifications;
+        checkForUpdates = config.CheckForUpdates;
         language = config.Language;
     }
 

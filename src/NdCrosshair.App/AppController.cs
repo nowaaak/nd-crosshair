@@ -20,6 +20,8 @@ internal sealed class AppController : IDisposable
     private static readonly TimeSpan SaveDelay = TimeSpan.FromMilliseconds(500);
     private static readonly TimeSpan PresetToastDuration = TimeSpan.FromSeconds(1.5);
     private static readonly TimeSpan UnreadableToastDuration = TimeSpan.FromSeconds(12);
+    private static readonly TimeSpan FirstUpdateCheckDelay = TimeSpan.FromSeconds(15);
+    private static readonly TimeSpan UpdateCheckInterval = TimeSpan.FromHours(12);
 
     private static readonly (HotkeyAction Action, int VirtualKey)[] PositionHotkeys =
     [
@@ -37,7 +39,11 @@ internal sealed class AppController : IDisposable
     private readonly TrayIcon tray;
     private readonly ToastService toasts = new();
     private readonly DispatcherTimer saveTimer;
+    private readonly DispatcherTimer updateTimer;
+    private readonly UpdateService updateService = new();
+    private readonly UpdateViewModel updates;
     private readonly ConfigLoadResult loadResult;
+    private readonly string? autostartRepairError;
     private readonly bool savingBlocked;
     private MainWindow? window;
     private bool saveFailureReported;
@@ -49,12 +55,20 @@ internal sealed class AppController : IDisposable
         savingBlocked = loadResult.Status == ConfigLoadStatus.Unreadable;
         Loc.Instance.SetLanguage(loadResult.Config.Language);
 
-        viewModel = new MainViewModel(loadResult.Config, ReadAutostart());
+        if (updateService.IsInstalled)
+        {
+            autostartRepairError = RepairAutostartPath();
+        }
+
+        updates = new UpdateViewModel(updateService);
+        viewModel = new MainViewModel(loadResult.Config, ReadAutostart(), updates);
         overlay = new OverlayController();
         hotkeys = new HotkeyService();
         tray = new TrayIcon();
         saveTimer = new DispatcherTimer(SaveDelay, DispatcherPriority.Background, (_, _) => Save(), Dispatcher.CurrentDispatcher);
         saveTimer.Stop();
+        updateTimer = new DispatcherTimer(FirstUpdateCheckDelay, DispatcherPriority.Background, OnUpdateTimer, Dispatcher.CurrentDispatcher);
+        updateTimer.Stop();
         toasts.MonitorDeviceName = viewModel.MonitorDeviceName;
 
         viewModel.Changed += OnViewModelChanged;
@@ -62,6 +76,8 @@ internal sealed class AppController : IDisposable
         overlay.StreamerModeUnavailable += (_, _) => toasts.Show(Loc.T("ToastStreamerUnavailable"));
         overlay.RenderFailed += (_, _) => toasts.Show(Loc.T("ToastRenderFailed"));
         overlay.GameDetected += OnGameDetected;
+        updates.UpdateFound += (_, version) => toasts.Show(Loc.Format("ToastUpdateAvailable", version));
+        updates.RestartRequested += (_, _) => Application.Current.Shutdown();
         tray.OpenSettingsRequested += (_, _) => ShowSettings();
         tray.ToggleRequested += (_, _) => viewModel.OverlayVisible = !viewModel.OverlayVisible;
         tray.PresetSelected += (_, index) => viewModel.SelectPreset(index);
@@ -73,6 +89,16 @@ internal sealed class AppController : IDisposable
         overlay.Apply(viewModel.ToOverlayOptions());
         ApplyHotkeys();
         UpdateTray();
+
+        if (updates.IsSupported)
+        {
+            updateTimer.Start();
+        }
+
+        if (autostartRepairError is not null)
+        {
+            toasts.Show(Loc.Format("ToastAutostartFailed", autostartRepairError));
+        }
 
         switch (loadResult.Status)
         {
@@ -118,6 +144,7 @@ internal sealed class AppController : IDisposable
 
     public void Dispose()
     {
+        updateTimer.Stop();
         if (saveTimer.IsEnabled)
         {
             Save();
@@ -133,6 +160,28 @@ internal sealed class AppController : IDisposable
         tray.Dispose();
         hotkeys.Dispose();
         overlay.Dispose();
+    }
+
+    private static string? RepairAutostartPath()
+    {
+        try
+        {
+            AutostartService.PointToCurrentExecutable();
+            return null;
+        }
+        catch (Exception exception) when (exception is UnauthorizedAccessException or System.Security.SecurityException or IOException)
+        {
+            return exception.Message;
+        }
+    }
+
+    private async void OnUpdateTimer(object? sender, EventArgs e)
+    {
+        updateTimer.Interval = UpdateCheckInterval;
+        if (viewModel.CheckForUpdates)
+        {
+            await updates.CheckAsync();
+        }
     }
 
     private static bool ReadAutostart()

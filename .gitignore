@@ -4,3 +4,5 @@ obj/
 *.user
 publish/
 TestResults/
+velopack/
+Releases/

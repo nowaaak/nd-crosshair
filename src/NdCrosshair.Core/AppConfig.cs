@@ -120,6 +120,8 @@ public sealed record AppConfig
 
     public bool ShowPresetNotifications { get; init; } = true;
 
+    public bool CheckForUpdates { get; init; } = true;
+
     public AppLanguage Language { get; init; }
 
     public AppConfig Normalize()

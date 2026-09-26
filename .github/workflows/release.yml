@@ -52,6 +52,37 @@ jobs:
           -p:Version=${{ steps.version.outputs.value }}
           -o artifacts/framework-dependent
 
+      - name: Publish installer build
+        run: >
+          dotnet publish src/NdCrosshair.App -c Release -r win-x64
+          --self-contained true
+          -p:DebugType=none
+          -p:Version=${{ steps.version.outputs.value }}
+          -o artifacts/installer
+
+      - name: Restore tools
+        run: dotnet tool restore
+
+      - name: Download previous installer release for delta updates
+        if: github.ref_type == 'tag'
+        run: >
+          dotnet vpk download github
+          --repoUrl ${{ github.server_url }}/${{ github.repository }}
+          --token ${{ github.token }}
+          --outputDir velopack
+
+      - name: Build installer and update packages
+        run: >
+          dotnet vpk pack
+          --packId NdCrosshair
+          --packVersion ${{ steps.version.outputs.value }}
+          --packDir artifacts/installer
+          --mainExe NdCrosshair.exe
+          --packTitle "ND Crosshair"
+          --packAuthors nowaaak
+          --icon src/NdCrosshair.App/Assets/app.ico
+          --outputDir velopack
+
       - name: Package
         shell: pwsh
         run: |
@@ -65,7 +96,9 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: NdCrosshair-${{ steps.version.outputs.value }}
-          path: dist/*
+          path: |
+            dist/*
+            velopack/*
 
       - name: Create GitHub release
         if: github.ref_type == 'tag'
@@ -73,3 +106,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         shell: pwsh
         run: gh release create $env:GITHUB_REF_NAME dist/* --title "ND Crosshair $env:GITHUB_REF_NAME" --generate-notes
+
+      - name: Upload installer and update packages
+        if: github.ref_type == 'tag'
+        run: >
+          dotnet vpk upload github
+          --repoUrl ${{ github.server_url }}/${{ github.repository }}
+          --token ${{ github.token }}
+          --outputDir velopack
+          --tag ${{ github.ref_name }}
+          --merge
+          --publish

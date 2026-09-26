@@ -37,6 +37,7 @@ internal sealed partial class MainViewModel
     private bool minimizeToTray;
     private bool closeToTray;
     private bool showPresetNotifications;
+    private bool checkForUpdates;
     private AppLanguage language;
 
     public ObservableCollection<MonitorOption> Monitors { get; } = [];
@@ -218,6 +219,14 @@ internal sealed partial class MainViewModel
     {
         get => showPresetNotifications;
         set => SetSystemField(ref showPresetNotifications, value);
+    }
+
+    public UpdateViewModel Updates { get; }
+
+    public bool CheckForUpdates
+    {
+        get => checkForUpdates;
+        set => SetSystemField(ref checkForUpdates, value);
     }
 
     public bool StartWithWindows

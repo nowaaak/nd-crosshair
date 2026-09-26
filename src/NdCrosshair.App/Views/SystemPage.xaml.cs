@@ -17,6 +17,10 @@ public partial class SystemPage : UserControl
         InitializeComponent();
     }
 
+    private async void OnCheckUpdates(object sender, RoutedEventArgs e) => await PageActions.ViewModel(this).Updates.CheckAsync();
+
+    private async void OnInstallUpdate(object sender, RoutedEventArgs e) => await PageActions.ViewModel(this).Updates.InstallAsync();
+
     private void OnExport(object sender, RoutedEventArgs e)
     {
         var dialog = new SaveFileDialog

@@ -48,10 +48,13 @@ A free, open source crosshair overlay for Windows. It draws a fully customizable
 
 Ready-to-use builds are available under [Releases](https://github.com/nowaaak/nd-crosshair/releases):
 
-- `NdCrosshair-<version>-win-x64-portable.zip`: runs without installation and includes .NET (about 70 MB)
-- `NdCrosshair-<version>-win-x64-requires-dotnet8.zip`: much smaller, requires the [.NET 8 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0)
+- **Recommended:** `NdCrosshair-win-Setup.exe` installs the app for your user, without admin rights, with Start menu and desktop shortcuts. Updates can be installed right in the app under **System**. Uninstall it through the Windows settings.
+- `NdCrosshair-<version>-win-x64-portable.zip`: runs without installation and includes .NET (about 70 MB), no in-app updates
+- `NdCrosshair-<version>-win-x64-requires-dotnet8.zip`: much smaller, requires the [.NET 8 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0), no in-app updates
 
-Extract the ZIP, move `NdCrosshair.exe` to a permanent location and run it. The executable is not code-signed, so Windows SmartScreen may show a warning on first launch ("More info", then "Run anyway").
+The files are not code-signed, so Windows SmartScreen may show a warning on first launch ("More info", then "Run anyway").
+
+The installed version checks GitHub for a new version at startup and every 12 hours. You can turn this off under **System**. An update is only installed after you confirm it.
 
 ## Requirements
 
@@ -74,12 +77,12 @@ The configuration is stored in `%APPDATA%\NdCrosshair\config.json`. A corrupted 
 
 ## Releasing
 
-Pushing a tag like `v1.0.0` runs the release workflow. It tests, builds both variants, creates the ZIP files with SHA-256 checksums and publishes a GitHub release. The workflow can also be started manually to produce test builds as workflow artifacts without creating a release.
+Pushing a tag like `v1.0.0` runs the release workflow. It tests, builds both ZIP variants with SHA-256 checksums, builds the installer and update packages with [Velopack](https://github.com/velopack/velopack) (`vpk`, pinned in `.config/dotnet-tools.json`) and publishes everything as one GitHub release. Installed apps pick up the new version from there. The workflow can also be started manually to produce test builds as workflow artifacts without creating a release.
 
 ## Games and anti-cheat
 
 - In Fortnite, set the window mode to **Windowed Fullscreen**. In exclusive fullscreen, Windows cannot draw other windows on top of the game.
-- The overlay never touches the game process. It does not open a handle to the game, read memory, inject code, install keyboard or mouse hooks, access the network or require admin rights.
+- The overlay never touches the game process. It does not open a handle to the game, read memory, inject code, install keyboard or mouse hooks or require admin rights. The only network connection is the optional update check on GitHub in the installed version.
 - To detect games, the app reads the foreground window's title and the process name from the Windows process list (`CreateToolhelp32Snapshot`), just like Task Manager. The list is only read when a different window comes to the foreground.
 - "Hide while aiming" polls the state of the selected mouse button about a hundred times per second (`GetAsyncKeyState`). This is not a hook and does not change any input. Polling only runs while the feature is enabled and the overlay is visible.
 - The app never reads pixels from the screen. The old **Contrast** color mode, which sampled the screen around the crosshair, has been removed. Presets and share codes that still use it fall back to **Fixed**.
