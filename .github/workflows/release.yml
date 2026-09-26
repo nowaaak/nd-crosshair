@@ -77,6 +77,7 @@ jobs:
           --packId NdCrosshair
           --packVersion ${{ steps.version.outputs.value }}
           --packDir artifacts/installer
+          --runtime win-x64
           --mainExe NdCrosshair.exe
           --packTitle "ND Crosshair"
           --packAuthors nowaaak
