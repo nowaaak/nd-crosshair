@@ -45,9 +45,12 @@ internal sealed class OverlayController : IDisposable
         rainbowTimer.Stop();
         adaptiveTimer.Stop();
         foregroundTimer.Stop();
+        window.RenderFailed += (_, _) => RenderFailed?.Invoke(this, EventArgs.Empty);
     }
 
     public event EventHandler? StreamerModeUnavailable;
+
+    public event EventHandler? RenderFailed;
 
     public void Apply(OverlayOptions next)
     {

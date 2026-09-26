@@ -27,6 +27,7 @@ internal sealed unsafe class OverlayWindow : IDisposable
     private int offsetX;
     private int offsetY;
     private bool visible;
+    private bool renderFailed;
     private bool disposed;
 
     public OverlayWindow()
@@ -69,6 +70,8 @@ internal sealed unsafe class OverlayWindow : IDisposable
         topmostTimer = new DispatcherTimer(TopmostInterval, DispatcherPriority.Background, (_, _) => EnsureTopmost(), dispatcher);
         topmostTimer.Stop();
     }
+
+    public event EventHandler? RenderFailed;
 
     public ScreenRect? Bounds { get; private set; }
 
@@ -143,6 +146,11 @@ internal sealed unsafe class OverlayWindow : IDisposable
             return;
         }
 
+        if (renderFailed)
+        {
+            Redraw();
+        }
+
         User32.SetWindowPos(
             hwnd,
             User32.HWND_TOPMOST,
@@ -155,11 +163,35 @@ internal sealed unsafe class OverlayWindow : IDisposable
 
     private void Redraw()
     {
-        if (image is null || monitor is null || disposed)
+        if (image is null || disposed)
         {
             return;
         }
 
+        if (monitor is not null && TryPresent(image, monitor))
+        {
+            renderFailed = false;
+            return;
+        }
+
+        surface?.Dispose();
+        surface = null;
+        monitor = DisplayMonitors.Resolve(monitorDeviceName);
+        if (monitor is not null && TryPresent(image, monitor))
+        {
+            renderFailed = false;
+            return;
+        }
+
+        if (!renderFailed)
+        {
+            renderFailed = true;
+            RenderFailed?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    private bool TryPresent(CrosshairImage image, DisplayMonitor monitor)
+    {
         var size = image.Size;
         if (surface is null || surface.Width != size)
         {
@@ -185,10 +217,11 @@ internal sealed unsafe class OverlayWindow : IDisposable
 
         if (!User32.UpdateLayeredWindow(hwnd, 0, &destination, &extent, surface.DeviceContext, &source, 0, &blend, User32.ULW_ALPHA))
         {
-            throw new Win32Exception(Marshal.GetLastPInvokeError());
+            return false;
         }
 
         Bounds = new ScreenRect(destination.X, destination.Y, size, size);
+        return true;
     }
 
     private void RefreshMonitor()

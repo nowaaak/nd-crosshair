@@ -10,6 +10,7 @@ namespace NdCrosshair.App;
 internal sealed class AppController : IDisposable
 {
     private static readonly TimeSpan SaveDelay = TimeSpan.FromMilliseconds(500);
+    private static readonly TimeSpan UnreadableToastDuration = TimeSpan.FromSeconds(12);
 
     private readonly ConfigStore store;
     private readonly MainViewModel viewModel;
@@ -19,6 +20,7 @@ internal sealed class AppController : IDisposable
     private readonly ToastService toasts = new();
     private readonly DispatcherTimer saveTimer;
     private readonly ConfigLoadResult loadResult;
+    private readonly bool savingBlocked;
     private MainWindow? window;
     private bool saveFailureReported;
 
@@ -26,6 +28,7 @@ internal sealed class AppController : IDisposable
     {
         this.store = store;
         loadResult = store.Load();
+        savingBlocked = loadResult.Status == ConfigLoadStatus.Unreadable;
         Loc.Instance.SetLanguage(loadResult.Config.Language);
 
         viewModel = new MainViewModel(loadResult.Config, ReadAutostart());
@@ -38,6 +41,7 @@ internal sealed class AppController : IDisposable
         viewModel.Changed += OnViewModelChanged;
         hotkeys.Pressed += OnHotkeyPressed;
         overlay.StreamerModeUnavailable += (_, _) => toasts.Show(Loc.T("ToastStreamerUnavailable"));
+        overlay.RenderFailed += (_, _) => toasts.Show(Loc.T("ToastRenderFailed"));
         tray.OpenSettingsRequested += (_, _) => ShowSettings();
         tray.ToggleRequested += (_, _) => viewModel.OverlayVisible = !viewModel.OverlayVisible;
         tray.PresetSelected += (_, index) => viewModel.SelectPreset(index);
@@ -58,6 +62,9 @@ internal sealed class AppController : IDisposable
                 return;
             case ConfigLoadStatus.RecoveredFromCorruptFile:
                 toasts.Show(Loc.Format("ToastConfigRecovered", loadResult.CorruptFileBackupPath ?? string.Empty));
+                break;
+            case ConfigLoadStatus.Unreadable:
+                toasts.Show(Loc.Format("ToastConfigUnreadable", loadResult.ErrorMessage ?? string.Empty), UnreadableToastDuration);
                 break;
         }
 
@@ -216,6 +223,11 @@ internal sealed class AppController : IDisposable
     private void Save()
     {
         saveTimer.Stop();
+        if (savingBlocked)
+        {
+            return;
+        }
+
         try
         {
             store.Save(viewModel.ToConfig());

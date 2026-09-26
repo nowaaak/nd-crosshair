@@ -168,6 +168,23 @@ public sealed class ConfigStoreTests : IDisposable
     }
 
     [Fact]
+    public void Load_WithLockedFile_ReportsUnreadableWithoutTouchingIt()
+    {
+        Directory.CreateDirectory(directory);
+        File.WriteAllText(FilePath, "{}");
+
+        ConfigLoadResult result;
+        using (new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.None))
+        {
+            result = new ConfigStore(FilePath).Load();
+        }
+
+        Assert.Equal(ConfigLoadStatus.Unreadable, result.Status);
+        Assert.False(string.IsNullOrEmpty(result.ErrorMessage));
+        Assert.Equal("{}", File.ReadAllText(FilePath));
+    }
+
+    [Fact]
     public void Load_WithEmptyPresetList_AddsDefaultPreset()
     {
         Directory.CreateDirectory(directory);

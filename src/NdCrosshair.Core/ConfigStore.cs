@@ -8,13 +8,16 @@ public enum ConfigLoadStatus
     Loaded,
     Created,
     RecoveredFromCorruptFile,
+    Unreadable,
 }
 
-public sealed record ConfigLoadResult(AppConfig Config, ConfigLoadStatus Status, string? CorruptFileBackupPath);
+public sealed record ConfigLoadResult(AppConfig Config, ConfigLoadStatus Status, string? CorruptFileBackupPath, string? ErrorMessage = null);
 
 public sealed class ConfigStore
 {
     private const long MaxImportFileSize = 1024 * 1024;
+    private const int ReadAttempts = 3;
+    private static readonly TimeSpan ReadRetryDelay = TimeSpan.FromMilliseconds(100);
 
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
@@ -72,7 +75,11 @@ public sealed class ConfigStore
             return new ConfigLoadResult(new AppConfig().Normalize(), ConfigLoadStatus.Created, null);
         }
 
-        var json = File.ReadAllText(FilePath);
+        if (!TryRead(FilePath, out var json, out var readError))
+        {
+            return new ConfigLoadResult(new AppConfig().Normalize(), ConfigLoadStatus.Unreadable, null, readError);
+        }
+
         try
         {
             return new ConfigLoadResult(Deserialize(json), ConfigLoadStatus.Loaded, null);
@@ -89,6 +96,30 @@ public sealed class ConfigStore
     {
         ArgumentNullException.ThrowIfNull(config);
         WriteAtomically(FilePath, Serialize(config));
+    }
+
+    private static bool TryRead(string path, out string content, out string? error)
+    {
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                content = File.ReadAllText(path);
+                error = null;
+                return true;
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+                if (attempt >= ReadAttempts)
+                {
+                    content = string.Empty;
+                    error = exception.Message;
+                    return false;
+                }
+
+                Thread.Sleep(ReadRetryDelay);
+            }
+        }
     }
 
     private static string Serialize(AppConfig config) => JsonSerializer.Serialize(config.Normalize(), SerializerOptions);
