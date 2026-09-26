@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
-        <TargetFramework>net8.0-windows</TargetFramework>
+        <TargetFramework>net10.0-windows</TargetFramework>
         <UseWPF>true</UseWPF>
         <UseWindowsForms>true</UseWindowsForms>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -15,7 +15,7 @@
         <Description>Custom crosshair overlay for Windows games</Description>
         <Copyright>Copyright (c) 2026 nowaaak</Copyright>
         <Version>1.0.0</Version>
-        <NoWarn>$(NoWarn);WFAC010</NoWarn>
+        <NoWarn>$(NoWarn);WFO0003</NoWarn>
         <StartupObject>NdCrosshair.App.Program</StartupObject>
     </PropertyGroup>
 

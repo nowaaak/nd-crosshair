@@ -50,7 +50,7 @@ Ready-to-use builds are available under [Releases](https://github.com/nowaaak/nd
 
 - **Recommended:** `NdCrosshair-win-Setup.exe` installs the app for your user, without admin rights, with Start menu and desktop shortcuts. Updates can be installed right in the app under **System**. Uninstall it through the Windows settings.
 - `NdCrosshair-<version>-win-x64-portable.zip`: runs without installation and includes .NET (about 70 MB), no in-app updates
-- `NdCrosshair-<version>-win-x64-requires-dotnet8.zip`: much smaller, requires the [.NET 8 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0), no in-app updates
+- `NdCrosshair-<version>-win-x64-requires-dotnet10.zip`: much smaller, requires the [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0), no in-app updates
 
 The files are not code-signed, so Windows SmartScreen may show a warning on first launch ("More info", then "Run anyway").
 
@@ -59,7 +59,7 @@ The installed version checks GitHub for a new version at startup and every 12 ho
 ## Requirements
 
 - Windows 10 or 11
-- .NET 8 SDK to build from source
+- .NET 10 SDK to build from source
 
 ## Building from source
 

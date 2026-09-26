@@ -37,8 +37,9 @@ body:
     attributes:
       label: Build
       options:
+        - Installed (Setup.exe)
         - Portable (includes .NET)
-        - Requires .NET 8
+        - Requires .NET 10
         - Built from source
     validations:
       required: true

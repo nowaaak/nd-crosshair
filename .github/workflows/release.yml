@@ -16,7 +16,7 @@ jobs:
 
       - uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 10.0.x
 
       - name: Determine version
         id: version
@@ -89,7 +89,7 @@ jobs:
           $version = '${{ steps.version.outputs.value }}'
           New-Item -ItemType Directory -Force dist | Out-Null
           Compress-Archive -Path artifacts/portable/NdCrosshair.exe, LICENSE -DestinationPath "dist/NdCrosshair-$version-win-x64-portable.zip"
-          Compress-Archive -Path artifacts/framework-dependent/NdCrosshair.exe, LICENSE -DestinationPath "dist/NdCrosshair-$version-win-x64-requires-dotnet8.zip"
+          Compress-Archive -Path artifacts/framework-dependent/NdCrosshair.exe, LICENSE -DestinationPath "dist/NdCrosshair-$version-win-x64-requires-dotnet10.zip"
           Get-FileHash dist/*.zip -Algorithm SHA256 | ForEach-Object { "$($_.Hash.ToLower())  $(Split-Path $_.Path -Leaf)" } | Set-Content dist/SHA256SUMS.txt
 
       - name: Upload artifacts

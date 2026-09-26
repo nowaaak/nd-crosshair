@@ -50,7 +50,7 @@ Fertige Versionen gibt es unter [Releases](https://github.com/nowaaak/nd-crossha
 
 - **Empfohlen:** `NdCrosshair-win-Setup.exe` installiert die App für deinen Benutzer, ohne Admin-Rechte, mit Startmenü- und Desktop-Verknüpfung. Updates lassen sich direkt in der App unter **System** installieren. Deinstallieren geht über die Windows-Einstellungen.
 - `NdCrosshair-<Version>-win-x64-portable.zip`: läuft ohne Installation, enthält .NET (etwa 70 MB), ohne Updates in der App
-- `NdCrosshair-<Version>-win-x64-requires-dotnet8.zip`: deutlich kleiner, braucht die [.NET 8 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0), ohne Updates in der App
+- `NdCrosshair-<Version>-win-x64-requires-dotnet10.zip`: deutlich kleiner, braucht die [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0), ohne Updates in der App
 
 Die Dateien sind nicht signiert, deshalb kann Windows SmartScreen beim ersten Start warnen ("Weitere Informationen", dann "Trotzdem ausführen").
 
@@ -59,7 +59,7 @@ Die installierte Version prüft beim Start und alle 12 Stunden bei GitHub, ob es
 ## Voraussetzungen
 
 - Windows 10 oder 11
-- .NET 8 Desktop Runtime (zum Ausführen) bzw. .NET 8 SDK (zum Bauen)
+- .NET 10 Desktop Runtime (zum Ausführen) bzw. .NET 10 SDK (zum Bauen)
 
 ## Selbst bauen
 
