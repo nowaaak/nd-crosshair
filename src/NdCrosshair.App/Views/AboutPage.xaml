@@ -12,7 +12,7 @@
             <StackPanel MaxWidth="880" HorizontalAlignment="Left">
                 <Border Style="{StaticResource Card}" Padding="24,20">
                     <DockPanel>
-                        <Border DockPanel.Dock="Left" Width="72" Height="72" CornerRadius="16" Background="Black"
+                        <Border DockPanel.Dock="Left" Width="72" Height="72" CornerRadius="16" Background="{DynamicResource LogoBackgroundBrush}"
                                 BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1">
                             <Path Data="{StaticResource LogoGeometry}" Fill="White" Stretch="Uniform" Margin="14" />
                         </Border>

@@ -8,6 +8,7 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+        <ApplicationIcon Condition="'$(Configuration)' == 'Debug'">Assets\app-dev.ico</ApplicationIcon>
         <AssemblyName>NdCrosshair</AssemblyName>
         <RootNamespace>NdCrosshair.App</RootNamespace>
         <Product>ND Crosshair</Product>
@@ -31,6 +32,7 @@
 
     <ItemGroup>
         <Resource Include="Assets\app.ico" />
+        <Resource Include="Assets\app-dev.ico" />
     </ItemGroup>
 
     <ItemGroup>

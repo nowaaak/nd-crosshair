@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Media;
 using System.Windows.Threading;
 using NdCrosshair.App.Localization;
 using NdCrosshair.App.Services;
@@ -16,6 +17,7 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+        Resources["LogoBackgroundBrush"] = new SolidColorBrush(AppIdentity.LogoBackground);
 
         instanceMutex = new Mutex(true, AppIdentity.InstanceMutexName, out var isFirstInstance);
         if (!isFirstInstance)

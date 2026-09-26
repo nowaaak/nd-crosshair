@@ -5,7 +5,6 @@
         xmlns:views="clr-namespace:NdCrosshair.App.Views"
         xmlns:l="clr-namespace:NdCrosshair.App.Localization"
         Title="ND Crosshair"
-        Icon="Assets/app.ico"
         Width="1240"
         Height="820"
         MinWidth="1040"
@@ -31,7 +30,7 @@
         <Border Background="{StaticResource SidebarBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="0,0,1,0">
             <DockPanel Margin="12,0,12,16">
                 <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="8,14,0,22">
-                    <Border Width="34" Height="34" CornerRadius="8" Background="Black"
+                    <Border Width="34" Height="34" CornerRadius="8" Background="{DynamicResource LogoBackgroundBrush}"
                             BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1">
                         <Path Data="{StaticResource LogoGeometry}" Fill="White" Stretch="Uniform" Margin="7" />
                     </Border>

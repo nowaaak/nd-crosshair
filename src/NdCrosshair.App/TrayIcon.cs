@@ -85,7 +85,7 @@ internal sealed class TrayIcon : IDisposable
 
     private static Drawing.Icon LoadIcon()
     {
-        var resource = Application.GetResourceStream(new Uri("pack://application:,,,/Assets/app.ico"))
+        var resource = Application.GetResourceStream(AppIdentity.IconUri)
             ?? throw new InvalidOperationException("Application icon resource is missing.");
         using var stream = resource.Stream;
         return new Drawing.Icon(stream, Forms.SystemInformation.SmallIconSize);

@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Media.Imaging;
 using NdCrosshair.App.Localization;
 using NdCrosshair.App.Native;
 
@@ -22,6 +23,7 @@ internal partial class MainWindow : Window
         DataContext = viewModel;
         InitializeComponent();
         Title = AppIdentity.DisplayName;
+        Icon = BitmapFrame.Create(AppIdentity.IconUri);
         StateChanged += OnStateChanged;
         PreviewKeyDown += OnWindowPreviewKeyDown;
     }

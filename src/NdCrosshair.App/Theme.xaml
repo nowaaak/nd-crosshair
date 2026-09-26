@@ -67,6 +67,8 @@
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
+    <SolidColorBrush x:Key="LogoBackgroundBrush" Color="Black" />
+
     <Geometry x:Key="LogoGeometry">M 388,513 L 388,1317 L 542,1317 L 544,844 L 1079,1339 L 1078,932 L 923,795 L 923,988 L 916,987 Z M 743,607 L 1309,607 C 1502,607 1660,781 1660,992 L 1660,1150 C 1660,1363 1499,1535 1294,1535 L 1104,1535 L 1104,1368 L 1295,1368 C 1415,1368 1506,1272 1506,1145 L 1506,992 C 1506,867 1415,767 1309,767 L 923,767 Z M 923,1223 L 923,1535 L 1078,1445 L 1078,1366 Z</Geometry>
 
     <FontFamily x:Key="IconFont">Segoe Fluent Icons, Segoe MDL2 Assets</FontFamily>
