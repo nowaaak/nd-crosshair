@@ -1,0 +1,209 @@
+using System.Collections.ObjectModel;
+using NdCrosshair.App.Localization;
+using NdCrosshair.Core;
+
+namespace NdCrosshair.App;
+
+internal sealed partial class MainViewModel
+{
+    private const string ClassicGlyph = "";
+
+    private int selectedLayerIndex;
+    private bool syncingLayers;
+
+    public ObservableCollection<LayerItem> Layers { get; } = [];
+
+    public LayerItem? SelectedLayerItem
+    {
+        get => Layers.FirstOrDefault(item => item.DesignIndex == selectedLayerIndex);
+        set
+        {
+            if (value is null || syncingLayers || value.DesignIndex == selectedLayerIndex)
+            {
+                return;
+            }
+
+            selectedLayerIndex = value.DesignIndex;
+            OnLayerSelectionChanged();
+        }
+    }
+
+    public CrosshairLayer SelectedLayer => Design.Layers[Math.Clamp(selectedLayerIndex, 0, Design.Layers.Count - 1)];
+
+    public bool IsClassicLayer => SelectedLayer is ClassicLayer;
+
+    public bool CanAddLayer => Design.Layers.Count < CrosshairDesign.MaxLayers;
+
+    public bool CanRemoveLayer => Design.Layers.Count > 1;
+
+    public bool CanMoveLayerForward => selectedLayerIndex < Design.Layers.Count - 1;
+
+    public bool CanMoveLayerBackward => selectedLayerIndex > 0;
+
+    public int LayerOffsetX
+    {
+        get => SelectedLayer.OffsetX;
+        set => EditLayer(SelectedLayer with { OffsetX = value });
+    }
+
+    public int LayerOffsetY
+    {
+        get => SelectedLayer.OffsetY;
+        set => EditLayer(SelectedLayer with { OffsetY = value });
+    }
+
+    public int LayerScale
+    {
+        get => SelectedLayer.Scale;
+        set => EditLayer(SelectedLayer with { Scale = value });
+    }
+
+    public int LayerBlur
+    {
+        get => SelectedLayer.Blur;
+        set => EditLayer(SelectedLayer with { Blur = value });
+    }
+
+    public int MinLayerOffset => -CrosshairLayer.MaxOffset;
+
+    public int MaxLayerOffset => CrosshairLayer.MaxOffset;
+
+    private CrosshairDesign Design => selectedPreset.Design;
+
+    public void AddClassicLayer() => AddLayer(new ClassicLayer());
+
+    public void RemoveSelectedLayer()
+    {
+        if (!CanRemoveLayer)
+        {
+            return;
+        }
+
+        var layers = Design.Layers.ToList();
+        layers.RemoveAt(selectedLayerIndex);
+        selectedLayerIndex = Math.Min(selectedLayerIndex, layers.Count - 1);
+        ApplyDesign(Design with { Layers = layers });
+    }
+
+    public void MoveSelectedLayer(int step)
+    {
+        var target = selectedLayerIndex + step;
+        if (target < 0 || target >= Design.Layers.Count)
+        {
+            return;
+        }
+
+        var layers = Design.Layers.ToList();
+        (layers[selectedLayerIndex], layers[target]) = (layers[target], layers[selectedLayerIndex]);
+        selectedLayerIndex = target;
+        ApplyDesign(Design with { Layers = layers });
+    }
+
+    private void AddLayer(CrosshairLayer layer)
+    {
+        if (!CanAddLayer)
+        {
+            return;
+        }
+
+        selectedLayerIndex = Design.Layers.Count;
+        ApplyDesign(Design with { Layers = [.. Design.Layers, layer] });
+        if (DesignTab == DesignTab.Layer)
+        {
+            DesignTab = DesignTab.Shape;
+        }
+    }
+
+    private void EditLayer(CrosshairLayer updated)
+    {
+        var normalized = updated.Normalize();
+        if (normalized == SelectedLayer)
+        {
+            OnPropertyChanged(string.Empty);
+            return;
+        }
+
+        ApplyDesign(Design.WithLayer(selectedLayerIndex, normalized));
+    }
+
+    private void ApplyDesign(CrosshairDesign design)
+    {
+        selectedPreset.Design = design.Normalize();
+        selectedLayerIndex = Math.Clamp(selectedLayerIndex, 0, selectedPreset.Design.Layers.Count - 1);
+        shareStatus = string.Empty;
+        SyncLayers();
+        RefreshCurrent();
+        Changed?.Invoke(this, ChangeKind.Overlay);
+    }
+
+    private void OnLayerSelectionChanged()
+    {
+        OnPropertyChanged(string.Empty);
+    }
+
+    private void ResetLayerSelection()
+    {
+        var classic = Design.Layers.ToList().FindIndex(layer => layer is ClassicLayer);
+        selectedLayerIndex = classic < 0 ? 0 : classic;
+        SyncLayers();
+    }
+
+    private void SetLayerVisibility(LayerItem item, bool visible)
+    {
+        if (syncingLayers || item.DesignIndex >= Design.Layers.Count)
+        {
+            return;
+        }
+
+        var layer = Design.Layers[item.DesignIndex];
+        if (layer.Visible != visible)
+        {
+            ApplyDesign(Design.WithLayer(item.DesignIndex, layer with { Visible = visible }));
+        }
+    }
+
+    private void SyncLayers()
+    {
+        syncingLayers = true;
+        try
+        {
+            var layers = Design.Layers;
+            while (Layers.Count > layers.Count)
+            {
+                Layers.RemoveAt(Layers.Count - 1);
+            }
+
+            while (Layers.Count < layers.Count)
+            {
+                Layers.Add(new LayerItem(SetLayerVisibility));
+            }
+
+            for (var designIndex = 0; designIndex < layers.Count; designIndex++)
+            {
+                var layer = layers[designIndex];
+                var item = Layers[layers.Count - 1 - designIndex];
+                item.DesignIndex = designIndex;
+                item.Title = LayerTitle(layer);
+                item.Subtitle = Loc.Format("LayerNumber", designIndex + 1);
+                item.Glyph = LayerGlyph(layer);
+                item.SetVisibleSilently(layer.Visible);
+            }
+        }
+        finally
+        {
+            syncingLayers = false;
+        }
+
+        OnPropertyChanged(nameof(SelectedLayerItem));
+    }
+
+    private static string LayerTitle(CrosshairLayer layer) => layer switch
+    {
+        _ => Loc.T("LayerClassic"),
+    };
+
+    private static string LayerGlyph(CrosshairLayer layer) => layer switch
+    {
+        _ => ClassicGlyph,
+    };
+}

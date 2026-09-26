@@ -23,6 +23,8 @@
                                      IsChecked="{Binding DesignTab, Converter={StaticResource EnumMatch}, ConverterParameter=Color}" />
                         <RadioButton Style="{StaticResource SegmentButton}" GroupName="DesignTab" Content="{l:T TabEffects}"
                                      IsChecked="{Binding DesignTab, Converter={StaticResource EnumMatch}, ConverterParameter=Effects}" />
+                        <RadioButton Style="{StaticResource SegmentButton}" GroupName="DesignTab" Content="{l:T TabLayer}"
+                                     IsChecked="{Binding DesignTab, Converter={StaticResource EnumMatch}, ConverterParameter=Layer}" />
                     </StackPanel>
                 </Border>
             </StackPanel>
@@ -170,103 +172,167 @@
                             </StackPanel>
                         </GroupBox>
                     </StackPanel>
+
+                    <StackPanel Visibility="{Binding DesignTab, Converter={StaticResource EnumVisibility}, ConverterParameter=Layer}">
+                        <GroupBox Header="{l:T CardLayerTransform}" Margin="0">
+                            <StackPanel>
+                                <app:SettingSlider Label="{l:T LayerOffsetX}" Value="{Binding LayerOffsetX}"
+                                                   Minimum="{Binding MinLayerOffset}" Maximum="{Binding MaxLayerOffset}" />
+                                <app:SettingSlider Label="{l:T LayerOffsetY}" Value="{Binding LayerOffsetY}"
+                                                   Minimum="{Binding MinLayerOffset}" Maximum="{Binding MaxLayerOffset}" />
+                                <app:SettingSlider Label="{l:T LayerScale}" Value="{Binding LayerScale}"
+                                                   Minimum="{x:Static core:CrosshairLayer.MinScale}"
+                                                   Maximum="{x:Static core:CrosshairLayer.MaxScale}" />
+                                <app:SettingSlider Label="{l:T LayerBlur}" Value="{Binding LayerBlur}"
+                                                   Minimum="{x:Static core:CrosshairLayer.MinBlur}"
+                                                   Maximum="{x:Static core:CrosshairLayer.MaxBlur}" />
+                                <TextBlock Text="{l:T LayerTransformHint}" Style="{StaticResource SecondaryText}" FontSize="12"
+                                           TextWrapping="Wrap" Margin="0,6,0,0" />
+                            </StackPanel>
+                        </GroupBox>
+                    </StackPanel>
                 </Grid>
             </ScrollViewer>
         </DockPanel>
 
-        <StackPanel Grid.Column="2" Margin="0,8,0,0">
-            <GroupBox Header="{l:T CardPreview}">
-                <StackPanel>
-                    <Border Height="260" CornerRadius="6" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1">
-                        <Border.Style>
-                            <Style TargetType="Border">
-                                <Setter Property="Background" Value="#FF16191D" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding PreviewScene}" Value="Light">
-                                        <Setter Property="Background" Value="#FFE4E7EA" />
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding PreviewScene}" Value="Sky">
-                                        <Setter Property="Background">
-                                            <Setter.Value>
-                                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                                    <GradientStop Color="#FF5E97D6" Offset="0" />
-                                                    <GradientStop Color="#FFB5D5F2" Offset="1" />
-                                                </LinearGradientBrush>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding PreviewScene}" Value="Forest">
-                                        <Setter Property="Background">
-                                            <Setter.Value>
-                                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                                    <GradientStop Color="#FF2E5429" Offset="0" />
-                                                    <GradientStop Color="#FF4F8043" Offset="0.5" />
-                                                    <GradientStop Color="#FF35602F" Offset="1" />
-                                                </LinearGradientBrush>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Border.Style>
-                        <Grid>
-                            <Image Source="{Binding PreviewImage}"
-                                   Width="{Binding PreviewZoomedSize}"
-                                   Height="{Binding PreviewZoomedSize}"
-                                   Stretch="Fill"
-                                   RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center" />
-                            <Border Background="#CC1C1C1C" CornerRadius="6" Padding="14,10" MaxWidth="260"
-                                    HorizontalAlignment="Center" VerticalAlignment="Center"
-                                    Visibility="{Binding IsCrosshairEmpty, Converter={StaticResource Visible}}">
-                                <StackPanel>
-                                    <TextBlock Text="{l:T PreviewEmptyTitle}" FontWeight="SemiBold" TextAlignment="Center" />
-                                    <TextBlock Text="{l:T PreviewEmptyText}" Style="{StaticResource SecondaryText}" FontSize="12"
-                                               TextWrapping="Wrap" TextAlignment="Center" Margin="0,4,0,0" />
+        <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto" Padding="0,0,4,16">
+            <StackPanel Margin="0,8,0,0">
+                <GroupBox Header="{l:T CardPreview}">
+                    <StackPanel>
+                        <Border Height="260" CornerRadius="6" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Background" Value="#FF16191D" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding PreviewScene}" Value="Light">
+                                            <Setter Property="Background" Value="#FFE4E7EA" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding PreviewScene}" Value="Sky">
+                                            <Setter Property="Background">
+                                                <Setter.Value>
+                                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                                        <GradientStop Color="#FF5E97D6" Offset="0" />
+                                                        <GradientStop Color="#FFB5D5F2" Offset="1" />
+                                                    </LinearGradientBrush>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding PreviewScene}" Value="Forest">
+                                            <Setter Property="Background">
+                                                <Setter.Value>
+                                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                        <GradientStop Color="#FF2E5429" Offset="0" />
+                                                        <GradientStop Color="#FF4F8043" Offset="0.5" />
+                                                        <GradientStop Color="#FF35602F" Offset="1" />
+                                                    </LinearGradientBrush>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <Grid>
+                                <Image Source="{Binding PreviewImage}"
+                                       Width="{Binding PreviewZoomedSize}"
+                                       Height="{Binding PreviewZoomedSize}"
+                                       Stretch="Fill"
+                                       RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                                <Border Background="#CC1C1C1C" CornerRadius="6" Padding="14,10" MaxWidth="260"
+                                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                                        Visibility="{Binding IsCrosshairEmpty, Converter={StaticResource Visible}}">
+                                    <StackPanel>
+                                        <TextBlock Text="{l:T PreviewEmptyTitle}" FontWeight="SemiBold" TextAlignment="Center" />
+                                        <TextBlock Text="{l:T PreviewEmptyText}" Style="{StaticResource SecondaryText}" FontSize="12"
+                                                   TextWrapping="Wrap" TextAlignment="Center" Margin="0,4,0,0" />
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </Border>
+                        <DockPanel Margin="0,10,0,0">
+                            <TextBlock DockPanel.Dock="Right" Text="{Binding PreviewScaleText}" Style="{StaticResource SecondaryText}"
+                                       FontSize="12" VerticalAlignment="Center" />
+                            <Border Style="{StaticResource SegmentHost}">
+                                <StackPanel Orientation="Horizontal">
+                                    <RadioButton Style="{StaticResource SegmentButton}" GroupName="Scene" Padding="10,4" FontSize="12"
+                                                 Content="{l:T SceneDark}"
+                                                 IsChecked="{Binding PreviewScene, Converter={StaticResource EnumMatch}, ConverterParameter=Dark}" />
+                                    <RadioButton Style="{StaticResource SegmentButton}" GroupName="Scene" Padding="10,4" FontSize="12"
+                                                 Content="{l:T SceneLight}"
+                                                 IsChecked="{Binding PreviewScene, Converter={StaticResource EnumMatch}, ConverterParameter=Light}" />
+                                    <RadioButton Style="{StaticResource SegmentButton}" GroupName="Scene" Padding="10,4" FontSize="12"
+                                                 Content="{l:T SceneSky}"
+                                                 IsChecked="{Binding PreviewScene, Converter={StaticResource EnumMatch}, ConverterParameter=Sky}" />
+                                    <RadioButton Style="{StaticResource SegmentButton}" GroupName="Scene" Padding="10,4" FontSize="12"
+                                                 Content="{l:T SceneForest}"
+                                                 IsChecked="{Binding PreviewScene, Converter={StaticResource EnumMatch}, ConverterParameter=Forest}" />
                                 </StackPanel>
                             </Border>
-                        </Grid>
-                    </Border>
-                    <DockPanel Margin="0,10,0,0">
-                        <TextBlock DockPanel.Dock="Right" Text="{Binding PreviewScaleText}" Style="{StaticResource SecondaryText}"
-                                   FontSize="12" VerticalAlignment="Center" />
-                        <Border Style="{StaticResource SegmentHost}">
-                            <StackPanel Orientation="Horizontal">
-                                <RadioButton Style="{StaticResource SegmentButton}" GroupName="Scene" Padding="10,4" FontSize="12"
-                                             Content="{l:T SceneDark}"
-                                             IsChecked="{Binding PreviewScene, Converter={StaticResource EnumMatch}, ConverterParameter=Dark}" />
-                                <RadioButton Style="{StaticResource SegmentButton}" GroupName="Scene" Padding="10,4" FontSize="12"
-                                             Content="{l:T SceneLight}"
-                                             IsChecked="{Binding PreviewScene, Converter={StaticResource EnumMatch}, ConverterParameter=Light}" />
-                                <RadioButton Style="{StaticResource SegmentButton}" GroupName="Scene" Padding="10,4" FontSize="12"
-                                             Content="{l:T SceneSky}"
-                                             IsChecked="{Binding PreviewScene, Converter={StaticResource EnumMatch}, ConverterParameter=Sky}" />
-                                <RadioButton Style="{StaticResource SegmentButton}" GroupName="Scene" Padding="10,4" FontSize="12"
-                                             Content="{l:T SceneForest}"
-                                             IsChecked="{Binding PreviewScene, Converter={StaticResource EnumMatch}, ConverterParameter=Forest}" />
-                            </StackPanel>
-                        </Border>
-                    </DockPanel>
-                    <TextBlock Text="{Binding PreviewModeHint}" Style="{StaticResource SecondaryText}" FontSize="12" TextWrapping="Wrap"
-                               Margin="0,8,0,0" Visibility="{Binding PreviewModeHint, Converter={StaticResource Visible}}" />
-                </StackPanel>
-            </GroupBox>
+                        </DockPanel>
+                        <TextBlock Text="{Binding PreviewModeHint}" Style="{StaticResource SecondaryText}" FontSize="12" TextWrapping="Wrap"
+                                   Margin="0,8,0,0" Visibility="{Binding PreviewModeHint, Converter={StaticResource Visible}}" />
+                    </StackPanel>
+                </GroupBox>
 
-            <GroupBox Header="{l:T CardActivePreset}">
-                <StackPanel>
-                    <ComboBox ItemsSource="{Binding Presets}" SelectedItem="{Binding SelectedPreset, Mode=TwoWay}"
-                              DisplayMemberPath="Name" AutomationProperties.Name="{l:T CardActivePreset}" />
-                    <DockPanel Margin="0,10,0,0">
-                        <Button DockPanel.Dock="Right" Content="{l:T CopyCode}" Style="{StaticResource AccentButton}"
-                                Margin="8,0,0,0" Click="OnCopyShareCode" />
-                        <TextBox Text="{Binding ShareCodeText, Mode=OneWay}" IsReadOnly="True"
-                                 FontFamily="Cascadia Mono, Consolas" FontSize="12" AutomationProperties.Name="{l:T ShareCode}" />
-                    </DockPanel>
-                    <TextBlock Text="{Binding ShareStatus}" Style="{StaticResource SecondaryText}" FontSize="12" Margin="0,6,0,0"
-                               Visibility="{Binding ShareStatus, Converter={StaticResource Visible}}" />
-                </StackPanel>
-            </GroupBox>
-        </StackPanel>
+                <GroupBox>
+                    <GroupBox.Header>
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                <Button Style="{StaticResource IconButton}" Content="&#xE710;" Click="OnAddLayer" IsEnabled="{Binding CanAddLayer}"
+                                        ToolTip="{l:T LayerAdd}" AutomationProperties.Name="{l:T LayerAdd}" />
+                                <Button Style="{StaticResource IconButton}" Content="&#xE74A;" Click="OnLayerForward" IsEnabled="{Binding CanMoveLayerForward}"
+                                        ToolTip="{l:T LayerForward}" AutomationProperties.Name="{l:T LayerForward}" />
+                                <Button Style="{StaticResource IconButton}" Content="&#xE74B;" Click="OnLayerBackward" IsEnabled="{Binding CanMoveLayerBackward}"
+                                        ToolTip="{l:T LayerBackward}" AutomationProperties.Name="{l:T LayerBackward}" />
+                                <Button Style="{StaticResource IconButton}" Content="&#xE74D;" Click="OnRemoveLayer" IsEnabled="{Binding CanRemoveLayer}"
+                                        ToolTip="{l:T LayerRemove}" AutomationProperties.Name="{l:T LayerRemove}" />
+                            </StackPanel>
+                            <TextBlock Text="{l:T CardLayers}" VerticalAlignment="Center" />
+                        </DockPanel>
+                    </GroupBox.Header>
+                    <StackPanel>
+                        <ListBox ItemsSource="{Binding Layers}" SelectedItem="{Binding SelectedLayerItem, Mode=TwoWay}" MaxHeight="220"
+                                 AutomationProperties.Name="{l:T CardLayers}">
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem" BasedOn="{StaticResource ListItemBase}">
+                                    <Setter Property="AutomationProperties.Name" Value="{Binding Title}" />
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <DockPanel>
+                                        <CheckBox DockPanel.Dock="Right" Style="{StaticResource EyeToggle}" IsChecked="{Binding Visible}"
+                                                  ToolTip="{l:T LayerVisible}" AutomationProperties.Name="{l:T LayerVisible}" />
+                                        <TextBlock DockPanel.Dock="Left" Text="{Binding Glyph}" FontFamily="{StaticResource IconFont}" FontSize="14"
+                                                   Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center" Margin="2,0,10,0" />
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Text="{Binding Subtitle}" Style="{StaticResource SecondaryText}" FontSize="11" />
+                                        </StackPanel>
+                                    </DockPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                        <TextBlock Text="{l:T LayersHint}" Style="{StaticResource SecondaryText}" FontSize="12" TextWrapping="Wrap" Margin="0,6,0,0" />
+                    </StackPanel>
+                </GroupBox>
+
+                <GroupBox Header="{l:T CardActivePreset}">
+                    <StackPanel>
+                        <ComboBox ItemsSource="{Binding Presets}" SelectedItem="{Binding SelectedPreset, Mode=TwoWay}"
+                                  DisplayMemberPath="Name" AutomationProperties.Name="{l:T CardActivePreset}" />
+                        <DockPanel Margin="0,10,0,0">
+                            <Button DockPanel.Dock="Right" Content="{l:T CopyCode}" Style="{StaticResource AccentButton}"
+                                    Margin="8,0,0,0" Click="OnCopyShareCode" />
+                            <TextBox Text="{Binding ShareCodeText, Mode=OneWay}" IsReadOnly="True"
+                                     FontFamily="Cascadia Mono, Consolas" FontSize="12" AutomationProperties.Name="{l:T ShareCode}" />
+                        </DockPanel>
+                        <TextBlock Text="{Binding ShareStatus}" Style="{StaticResource SecondaryText}" FontSize="12" Margin="0,6,0,0"
+                                   Visibility="{Binding ShareStatus, Converter={StaticResource Visible}}" />
+                    </StackPanel>
+                </GroupBox>
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
 </UserControl>

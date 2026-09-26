@@ -15,7 +15,7 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="120" />
             <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="64" />
+            <ColumnDefinition Width="76" />
         </Grid.ColumnDefinitions>
         <TextBlock Text="{Binding Label}"
                    VerticalAlignment="Center" />

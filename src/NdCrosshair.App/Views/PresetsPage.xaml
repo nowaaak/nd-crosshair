@@ -8,6 +8,7 @@
         <Style x:Key="PresetTile" TargetType="ListBoxItem">
             <Setter Property="Margin" Value="0,0,12,12" />
             <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
             <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}" />
             <Setter Property="Template">
                 <Setter.Value>

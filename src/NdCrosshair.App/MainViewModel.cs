@@ -36,6 +36,7 @@ internal enum DesignTab
     Shape,
     Color,
     Effects,
+    Layer,
 }
 
 internal enum PreviewScene
@@ -71,6 +72,7 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
         {
             RefreshMonitors();
             SyncPresetChoices();
+            SyncLayers();
             OnPropertyChanged(string.Empty);
         };
     }
@@ -133,6 +135,7 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
             }
 
             selectedPreset = value;
+            ResetLayerSelection();
             shareStatus = string.Empty;
             RefreshCurrent();
             Changed?.Invoke(this, ChangeKind.Overlay | ChangeKind.Presets);
@@ -143,7 +146,7 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
 
     public bool CanDeletePreset => Presets.Count > 1;
 
-    public CrosshairSettings Current => selectedPreset.Design.ClassicSettings() ?? new CrosshairSettings();
+    public CrosshairSettings Current => SelectedLayer is ClassicLayer classic ? classic.Settings : new CrosshairSettings();
 
     public bool ShowTop
     {
@@ -481,6 +484,7 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
 
         SyncPresetChoices();
         selectedPreset = Presets[config.ActivePresetIndex];
+        ResetLayerSelection();
         monitorDeviceName = config.MonitorDeviceName;
         offsetX = config.OffsetX;
         offsetY = config.OffsetY;
@@ -547,21 +551,14 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
 
     private void Edit(CrosshairSettings updated)
     {
-        updated = updated.Clamp();
-        if (updated == Current)
+        if (SelectedLayer is ClassicLayer classic)
+        {
+            EditLayer(classic with { Settings = updated.Clamp() });
+        }
+        else
         {
             OnPropertyChanged(string.Empty);
-            return;
         }
-
-        var design = selectedPreset.Design;
-        var index = design.Layers.ToList().FindIndex(layer => layer is ClassicLayer);
-        selectedPreset.Design = index < 0
-            ? design
-            : design.WithLayer(index, (ClassicLayer)design.Layers[index] with { Settings = updated });
-        shareStatus = string.Empty;
-        RefreshCurrent();
-        Changed?.Invoke(this, ChangeKind.Overlay);
     }
 
     private void RefreshCurrent()
