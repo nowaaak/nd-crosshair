@@ -121,6 +121,7 @@
                         <TextBox Text="{Binding ImportCode, UpdateSourceTrigger=PropertyChanged}"
                                  FontFamily="Cascadia Mono, Consolas" FontSize="12" AutomationProperties.Name="{l:T ImportCode}" />
                     </DockPanel>
+                    <TextBlock Text="{l:T ImportCodeHint}" Style="{StaticResource SecondaryText}" FontSize="12" TextWrapping="Wrap" Margin="0,6,0,0" />
                     <TextBlock Text="{Binding ShareStatus}" Style="{StaticResource SecondaryText}" FontSize="12" Margin="0,8,0,0"
                                TextWrapping="Wrap" Visibility="{Binding ShareStatus, Converter={StaticResource Visible}}" />
                 </StackPanel>

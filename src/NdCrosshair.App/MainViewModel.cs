@@ -361,6 +361,12 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
 
     public void ImportShareCode()
     {
+        if (GameCodeImporter.IsGameCode(ImportCode))
+        {
+            ImportGameCode();
+            return;
+        }
+
         if (!ShareCode.TryDecode(ImportCode, out var settings, out var error))
         {
             ShareStatus = error switch
@@ -377,6 +383,42 @@ internal sealed partial class MainViewModel : INotifyPropertyChanged
         ImportCode = string.Empty;
         ShareStatus = Loc.T("ShareImported");
     }
+
+    private void ImportGameCode()
+    {
+        var screenHeight = DisplayMonitors.Resolve(monitorDeviceName)?.Height ?? 0;
+        if (!GameCodeImporter.TryImport(ImportCode, screenHeight, out var result, out var error) || result is null)
+        {
+            ShareStatus = error switch
+            {
+                GameCodeError.ChecksumMismatch => Loc.T("ShareErrorChecksum"),
+                GameCodeError.OutdatedCs2Format => Loc.T("GameCodeOutdatedCs2"),
+                _ => Loc.T("ShareErrorInvalid"),
+            };
+            return;
+        }
+
+        var name = result.Source == GameCodeSource.CounterStrike2 ? Loc.T("ImportedCs2PresetName") : Loc.T("ImportedValorantPresetName");
+        InsertPreset(new PresetItem(name, result.Settings));
+        ImportCode = string.Empty;
+        ShareStatus = result.Notes.Count == 0
+            ? Loc.T("ShareImported")
+            : Loc.Format("GameCodeImportedWithNotes", string.Join(" ", result.Notes.Select(GameCodeNoteText)));
+    }
+
+    private static string GameCodeNoteText(GameCodeNote note) => note switch
+    {
+        GameCodeNote.DynamicShownStatic => Loc.T("NoteDynamicShownStatic"),
+        GameCodeNote.OuterLinesIgnored => Loc.T("NoteOuterLinesIgnored"),
+        GameCodeNote.SeparateVerticalLengthIgnored => Loc.T("NoteSeparateVerticalLength"),
+        GameCodeNote.OutlineOpacityApproximated => Loc.T("NoteOutlineOpacity"),
+        GameCodeNote.DotOpacityApproximated => Loc.T("NoteDotOpacity"),
+        GameCodeNote.CircleApproximated => Loc.T("NoteCircle"),
+        GameCodeNote.SquareApproximated => Loc.T("NoteSquare"),
+        GameCodeNote.HalfOutlineApproximated => Loc.T("NoteHalfOutline"),
+        GameCodeNote.FollowRecoilIgnored => Loc.T("NoteFollowRecoil"),
+        _ => Loc.T("NoteValuesClamped"),
+    };
 
     public AppConfig ToConfig() => new AppConfig
     {
