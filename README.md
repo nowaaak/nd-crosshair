@@ -7,18 +7,23 @@ A free, open source crosshair overlay for Windows. It draws a fully customizable
 ## Features
 
 ### Crosshair
-- Shape: lines (each can be toggled, so T-shapes work too), length, thickness, gap, rotation (for example 45° for an X), center dot (square or round), ring
-- Effects: outline, soft shadow
-- Color modes:
+- **Layers**: a preset consists of up to 12 stacked layers. Each layer can be moved, resized, blurred and hidden. The top of the list is in front.
+- **Crosshair**: 2 to 8 arms, length, thickness, gap, rotation, center dot (square or round), ring. With 4 arms each line can be toggled, so T-shapes work too.
+- **Shapes**: rectangle and triangle (filled or as a frame), chevron, arc with adjustable sweep and T shape, at any angle
+- **Text**: names, tags or symbols with font, size, bold and rotation. Emojis are drawn in the layer color.
+- **Image**: PNG, JPG, BMP or animated GIF (up to 8 MB and 2048 pixels). The image is copied into the app data, animated GIFs play in the overlay.
+- Effects per layer: outline, soft shadow, opacity
+- Color modes per layer:
   - **Fixed**: always uses the selected color
   - **Rainbow**: smooth color cycling with adjustable speed
+- **Spread while shooting**: while the left mouse button is held, lines and ring move outward and glide back afterwards. Strength and recovery time are set per preset, clicks in the settings window do not count.
 - Anti-aliasing through 4×4 supersampling. Straight edges stay pixel sharp.
 - Live preview on four backgrounds (dark, light, sky, forest)
 - A hint when dot size and line thickness have different parity, which puts the dot half a pixel off center
 
 ### Presets
 - Unlimited presets with thumbnails, each with an optional hotkey
-- Share codes (`NDX3-...`) to share and import presets. Older `NDX1-` and `NDX2-` codes are still supported.
+- Share codes to share and import presets: simple crosshairs keep a short `NDX3-` code, designs with layers, more arms or spread get an `NDX4-` code. Image layers are not included in codes. Older `NDX1-` and `NDX2-` codes are still supported.
 - **Game code import**: CS2 codes (`CSGO-...`, the pixel format introduced with the September 2026 update) and Valorant codes (`0;P;...`). Anything that cannot be mapped exactly (for example outer lines or dynamic spread) is listed after the import. CS2 codes are scaled to the height of the selected monitor. Old CS2 codes in the unit format are rejected because CS2 itself no longer accepts them.
 
 ### Overlay
@@ -37,7 +42,7 @@ A free, open source crosshair overlay for Windows. It draws a fully customizable
 ### System
 - Start with Windows, start in background, minimize to the notification area, keep running when closed
 - Language: system default, German or English, switchable at runtime
-- Export and restore backups, open the configuration folder, reset to defaults
+- Export and restore backups, open the configuration folder, reset to defaults. Backups contain the settings but not the image files in the `images` folder.
 
 ### Interface
 - Custom dark design with its own title bar, sidebar and categories
@@ -93,16 +98,15 @@ Pushing a tag like `v1.0.0` runs the release workflow. It tests, builds both ZIP
 
 ## Project structure
 
-- `src/NdCrosshair.Core`: settings, renderer (rasterization and coloring are separate), color math, share codes, CS2 and Valorant code import, game rules, hotkey conflicts, configuration with export, import and migration, translations. No Windows dependencies, covered by tests.
-- `src/NdCrosshair.App`: WPF interface (`Views`, `Controls`, `Theme.xaml`), the overlay as a native Win32 layered window, `OverlayController` for color modes and visibility, and services for foreground detection, mouse button state, autostart and notifications.
+- `src/NdCrosshair.Core`: settings, layer model (crosshair, shape, text, image), renderer with supersampling and layer blending, shape geometry, fire spread, color math, share codes (`NDX1` to `NDX4`), CS2 and Valorant code import, game rules, hotkey conflicts, configuration with export, import and migration, translations. No Windows dependencies, covered by tests. The app supplies text and images through the `ILayerContentProvider` interface.
+- `src/NdCrosshair.App`: WPF interface (`Views`, `Controls`, `Theme.xaml`), the overlay as a native Win32 layered window, `OverlayController` for animation, spread and visibility, `WpfLayerContent` for text and images (including GIF animation), and services for the image store, foreground detection, mouse button state, updates, autostart and notifications.
 - `tests/NdCrosshair.Core.Tests`: xUnit tests, including a check that every translation key used in the app exists in both languages.
 
 ## Roadmap ideas
 
-- Xbox Game Bar widget for exclusive fullscreen
-- Custom PNG images as crosshair
-- Separate color and opacity for lines, dot and ring, outer lines
-- Firing animation (lines spread while shooting)
+- Multi-stage animations with their own curve per mouse button
+- Previewing spread and GIF animation right in the editor
+- Cleaning up image files that are no longer used
 
 ## Feedback
 
